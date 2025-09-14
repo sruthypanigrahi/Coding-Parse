@@ -10,17 +10,38 @@ pip install pymupdf
 
 USAGE
 -----
+
+** EASY WAY (Using app.py) **
+1. Parse PDF:
+   python app.py parse "USB_PD_R3_2 V1.1 2024-10.pdf"
+
+2. Search entries:
+   python app.py search "power"
+   python app.py search "2.1"
+   python app.py search "cable"
+
+** MANUAL WAY (Individual scripts) **
 1. Extract all TOC entries from PDF:
    python usb_pd_parser.py "USB_PD_R3_2 V1.1 2024-10.pdf" --out usb_pd_spec.jsonl
 
 2. Filter to keep only numbered sections:
    python filter_toc.py usb_pd_spec.jsonl usb_pd_spec_clean.jsonl
 
+3. Search entries:
+   python search_toc.py usb_pd_spec_clean.jsonl "power"
+
 COMPLETE WORKFLOW
 -----------------
+** Quick Start **
+pip install pymupdf
+python app.py parse "USB_PD_R3_2 V1.1 2024-10.pdf"
+python app.py search "power"
+
+** Manual Workflow **
 pip install pymupdf
 python usb_pd_parser.py "USB_PD_R3_2 V1.1 2024-10.pdf" --out usb_pd_spec.jsonl
 python filter_toc.py usb_pd_spec.jsonl usb_pd_spec_clean.jsonl
+python search_toc.py usb_pd_spec_clean.jsonl "power"
 
 OUTPUT FORMAT
 -------------
