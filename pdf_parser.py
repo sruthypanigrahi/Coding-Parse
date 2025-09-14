@@ -1,7 +1,8 @@
 import json
 import re
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict
+from constants import DOC_TITLE, SECTION_TITLE_PATTERN
 
 try:
     import fitz  
@@ -12,7 +13,7 @@ except ImportError:
 class USBPDParser:
     def __init__(self, pdf_path: str):
         self.pdf_path = Path(pdf_path)
-        self.doc_title = "USB Power Delivery Specification"
+        self.doc_title = DOC_TITLE
         
     def extract_outline_bookmarks(self) -> List[Dict]:
         try:
@@ -26,7 +27,7 @@ class USBPDParser:
             entries = []
             for level, title, page in outline:
                 clean_title = title.strip()
-                section_match = re.match(r'^(\d+(?:\.\d+)*)\s+(.+)', clean_title)
+                section_match = re.match(SECTION_TITLE_PATTERN, clean_title)
                 
                 if section_match:
                     section_id = section_match.group(1)
@@ -98,41 +99,3 @@ class USBPDParser:
             for entry in entries:
                 f.write(json.dumps(entry, ensure_ascii=False) + '\n')
         print(f"Saved {len(entries)} entries to {output_path}")
-
-
-def filter_numbered_sections(input_file: str, output_file: str):
-    section_pattern = re.compile(r'^\d+(\.\d+)*$')
-    
-    with open(input_file, 'r', encoding='utf-8') as infile, \
-         open(output_file, 'w', encoding='utf-8') as outfile:
-        
-        filtered_count = 0
-        for line in infile:
-            try:
-                entry = json.loads(line.strip())
-                section_id = entry.get('section_id', '')
-                
-                if section_id and section_pattern.match(section_id):
-                    if not entry.get('parent_id'):
-                        entry['parent_id'] = None
-                    outfile.write(json.dumps(entry, ensure_ascii=False) + '\n')
-                    filtered_count += 1
-            except json.JSONDecodeError:
-                continue
-    
-    print(f"Filtered {filtered_count} numbered sections")
-    return filtered_count
-
-
-def search_toc(jsonl_file: str, query: str) -> List[Dict]:
-    matches = []
-    query_lower = query.lower()
-    
-    with open(jsonl_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            entry = json.loads(line.strip())
-            if (query_lower in entry['title'].lower() or 
-                query_lower in entry.get('section_id', '')):
-                matches.append(entry)
-    
-    return matches

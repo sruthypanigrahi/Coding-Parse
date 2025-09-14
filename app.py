@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-"""
-USB Power Delivery PDF Parser Application
-Main application to parse PDF and provide search functionality
-"""
-
 import sys
 from pathlib import Path
-from parser_module import USBPDParser, filter_numbered_sections, search_toc
+from pdf_parser import USBPDParser
+from filter import filter_numbered_sections
+from search import search_toc
+from constants import RAW_OUTPUT_FILE, CLEAN_OUTPUT_FILE, ASSETS_FOLDER, DEFAULT_PDF_FILE
 
 
 def main():
@@ -19,30 +16,34 @@ def main():
     command = sys.argv[1]
     
     if command == "parse":
-        if len(sys.argv) != 3:
-            print("Usage: python app.py parse <pdf_file>")
+        if len(sys.argv) == 2:
+            # Use default PDF from assets folder
+            pdf_file = Path(ASSETS_FOLDER) / DEFAULT_PDF_FILE
+        elif len(sys.argv) == 3:
+            # Check if it's just filename (look in assets) or full path
+            pdf_arg = sys.argv[2]
+            if Path(pdf_arg).exists():
+                pdf_file = Path(pdf_arg)
+            else:
+                pdf_file = Path(ASSETS_FOLDER) / pdf_arg
+        else:
+            print("Usage: python app.py parse [pdf_file]")
             sys.exit(1)
         
-        pdf_file = sys.argv[2]
-        if not Path(pdf_file).exists():
+        if not pdf_file.exists():
             print(f"Error: PDF file not found: {pdf_file}")
             sys.exit(1)
         
-        # Parse PDF
-        parser = USBPDParser(pdf_file)
+        parser = USBPDParser(str(pdf_file))
         entries = parser.parse()
         
         if entries:
-            # Save raw output
-            parser.save_jsonl(entries, "usb_pd_spec.jsonl")
-            
-            # Filter numbered sections
-            count = filter_numbered_sections("usb_pd_spec.jsonl", "usb_pd_spec_clean.jsonl")
+            parser.save_jsonl(entries, RAW_OUTPUT_FILE)
+            count = filter_numbered_sections(RAW_OUTPUT_FILE, CLEAN_OUTPUT_FILE)
             
             print(f"\nParsing complete!")
-            print(f"Clean output: usb_pd_spec_clean.jsonl ({count} sections)")
+            print(f"Clean output: {CLEAN_OUTPUT_FILE} ({count} sections)")
             
-            # Show sample
             print(f"\nSample entries:")
             for entry in entries[:3]:
                 if entry.get('section_id'):
@@ -56,7 +57,7 @@ def main():
             sys.exit(1)
         
         query = sys.argv[2]
-        clean_file = "usb_pd_spec_clean.jsonl"
+        clean_file = CLEAN_OUTPUT_FILE
         
         if not Path(clean_file).exists():
             print(f"Error: {clean_file} not found. Run 'python app.py parse <pdf_file>' first.")
