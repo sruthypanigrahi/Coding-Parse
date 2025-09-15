@@ -1,8 +1,8 @@
 USB Power Delivery PDF Parser
 =============================
 
-This tool extracts the Table of Contents from USB Power Delivery specification PDFs 
-and outputs clean, machine-readable JSONL files containing only numbered sections.
+A Python tool to extract Table of Contents and full content from USB Power Delivery 
+specification PDFs, outputting structured JSONL files.
 
 INSTALLATION
 ------------
@@ -10,51 +10,30 @@ pip install pymupdf
 
 USAGE
 -----
+Parse PDF and extract content:
+  python app.py parse
 
-** EASY WAY (Using app.py) **
-1. Parse PDF:
-   python app.py parse "USB_PD_R3_2 V1.1 2024-10.pdf"
+Parse specific PDF file:
+  python app.py parse "path/to/file.pdf"
 
-2. Search entries:
-   python app.py search "power"
-   python app.py search "2.1"
-   python app.py search "cable"
+Search extracted content:
+  python app.py search "power delivery"
+  python app.py search "2.1"
 
-** MANUAL WAY (Individual scripts) **
-1. Extract all TOC entries from PDF:
-   python usb_pd_parser.py "USB_PD_R3_2 V1.1 2024-10.pdf" --out usb_pd_spec.jsonl
+OUTPUT FILES
+------------
+usb_pd_toc.jsonl     - Table of Contents with numbered sections
+usb_pd_spec.jsonl    - Full document content including images and tables
 
-2. Filter to keep only numbered sections:
-   python filter_toc.py usb_pd_spec.jsonl usb_pd_spec_clean.jsonl
-
-3. Search entries:
-   python search_toc.py usb_pd_spec_clean.jsonl "power"
-
-COMPLETE WORKFLOW
------------------
-** Quick Start **
-pip install pymupdf
-python app.py parse "USB_PD_R3_2 V1.1 2024-10.pdf"
-python app.py search "power"
-
-** Manual Workflow **
-pip install pymupdf
-python usb_pd_parser.py "USB_PD_R3_2 V1.1 2024-10.pdf" --out usb_pd_spec.jsonl
-python filter_toc.py usb_pd_spec.jsonl usb_pd_spec_clean.jsonl
-python search_toc.py usb_pd_spec_clean.jsonl "power"
-
-OUTPUT FORMAT
--------------
-Each line in the JSONL file contains:
-- doc_title: Document title
-- section_id: Numeric section ID (e.g., "2.1.3")
-- title: Section title
-- page: Starting page number (integer)
-- level: Section depth (integer, based on dots in section_id)
-- parent_id: Parent section ID (or null for top-level)
-- full_path: Complete section identifier with title
+FEATURES
+--------
+- Extracts hierarchical table of contents
+- Captures all section and subsection content
+- Identifies images and tables in document
+- Provides search functionality
+- Handles large PDF documents efficiently
 
 REQUIREMENTS
 ------------
 - Python 3.6+
-- pymupdf (PyMuPDF) library
+- PyMuPDF library

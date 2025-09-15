@@ -9,11 +9,19 @@ def load_config():
 # Load configuration
 CONFIG = load_config()
 
-# Used constants only
+# Folder paths
 ASSETS_FOLDER = CONFIG['folders']['assets']
-RAW_OUTPUT_FILE = CONFIG['files']['raw_output']
-CLEAN_OUTPUT_FILE = CONFIG['files']['clean_output']
+
+# File paths
+TOC_OUTPUT_FILE = CONFIG['files']['toc_output']
+CONTENT_OUTPUT_FILE = CONFIG['files']['content_output']
 DEFAULT_PDF_FILE = CONFIG['files']['default_pdf']
+
+# Parser settings
 DOC_TITLE = CONFIG['parser']['doc_title']
+PROGRESS_INTERVAL = CONFIG['parser']['progress_interval']
+CONTENT_LIMIT = CONFIG['parser']['content_limit']
+
+# Regex patterns
 SECTION_PATTERN = CONFIG['patterns']['section_regex']
 SECTION_TITLE_PATTERN = CONFIG['patterns']['section_title_regex']
