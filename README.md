@@ -6,55 +6,118 @@ A production-ready Python tool for extracting Table of Contents and full content
 
 - **Hierarchical TOC Extraction**: Extracts structured table of contents with parent-child relationships
 - **Full Content Parsing**: Captures all section text, images, and tables
+- **Validation Reports**: Generates Excel/JSON reports comparing parsed vs source TOC
 - **Robust Error Handling**: Comprehensive validation and logging
-- **Performance Optimized**: Memory-efficient processing with context managers
-- **Production Ready**: Follows best practices with proper OOP design
+- **Performance Optimized**: Memory-efficient processing with optimizations
+- **Production Ready**: Enterprise-grade code quality and architecture
 
-## Installation
+## Prerequisites
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Verify installation
-python -m pytest test_parser.py -v
+# Required Python packages
+pip install PyMuPDF PyYAML pandas openpyxl
 ```
 
-## Usage
+## Quick Start
+
+```bash
+# 1. Parse PDF and extract content
+python app.py parse
+
+# 2. Search extracted content
+python app.py search "power delivery"
+
+# 3. Generate validation report
+python validation_report.py
+```
+
+## Environment Variables
+
+Create `.env` file (optional):
+```bash
+PDF_PATH=assets/USB_PD_R3_2 V1.1 2024-10.pdf
+LOG_LEVEL=INFO
+OUTPUT_DIR=output
+```
+
+## Commands
 
 ### Parse PDF
 ```bash
-# Parse default PDF from assets folder
+# Parse default PDF
 python app.py parse
 
-# Parse specific PDF file
-python app.py parse "path/to/your/file.pdf"
+# Parse specific file
+python app.py parse "path/to/file.pdf"
 
-# Parse PDF from assets folder by name
-python app.py parse "USB_PD_R3_2 V1.1 2024-10.pdf"
+# Parse with custom output
+python app.py parse --output custom_output.jsonl
 ```
 
 ### Search Content
 ```bash
-# Search in extracted TOC
-python app.py search "power delivery"
-python app.py search "2.1"
-python app.py search "cable"
+# Basic search
+python app.py search "USB"
+python app.py search "2.1.3"
+python app.py search "cable assembly"
+```
+
+### Generate Reports
+```bash
+# Validation report
+python validation_report.py
+
+# Performance report
+python performance_optimizer.py
 ```
 
 ## Output Files
 
-- **`usb_pd_toc.jsonl`**: Table of Contents with numbered sections only
-- **`usb_pd_spec.jsonl`**: Complete document content including images and tables
-- **`pdf_parser.log`**: Application logs for debugging
+- **`usb_pd_toc.jsonl`**: Structured table of contents
+- **`usb_pd_spec.jsonl`**: Complete document content
+- **`validation_report.xlsx`**: TOC validation report
+- **`validation_report.json`**: JSON validation data
+- **`pdf_parser.log`**: Application logs
+
+## Testing & Quality
+
+```bash
+# Run unit tests
+python -m unittest discover -v
+
+# Run with coverage
+python -m coverage run -m unittest discover
+python -m coverage report
+
+# Code quality checks
+flake8 . --max-line-length=88
+black . --check
+```
+
+## Architecture
+
+```
+├── app.py                    # CLI entry point
+├── parser_service.py         # Core business logic
+├── pdf_parser.py            # PDF TOC extraction
+├── content_extractor.py     # Content parsing
+├── validation_report.py     # Report generation
+├── performance_optimizer.py # Performance utilities
+├── filter.py               # Section filtering
+├── search.py               # Search functionality
+├── models.py               # Data models
+├── validators.py           # Input validation
+├── logger_config.py        # Logging configuration
+└── constants.py            # Configuration
+```
 
 ## Configuration
 
-Edit `application.yml` to customize:
-
+Edit `application.yml`:
 ```yaml
 folders:
   assets: "assets"
+  output: "output"
 
 files:
   toc_output: "usb_pd_toc.jsonl"
@@ -65,75 +128,46 @@ parser:
   doc_title: "USB Power Delivery Specification"
   progress_interval: 200
   content_limit: 10000
+  max_workers: 4
+
+performance:
+  enable_caching: true
+  batch_size: 100
+  memory_limit: "1GB"
 ```
 
-## Architecture
+## Performance Optimizations
 
-```
-├── app.py                 # Main entry point
-├── parser_service.py      # Business logic
-├── pdf_parser.py         # PDF TOC extraction
-├── content_extractor.py  # Content parsing
-├── filter.py             # Section filtering
-├── search.py             # Search functionality
-├── models.py             # Data models
-├── validators.py         # Input validation
-├── logger_config.py      # Logging setup
-├── constants.py          # Configuration loader
-└── test_parser.py        # Unit tests
-```
-
-## Testing
-
-```bash
-# Run all tests
-python -m pytest test_parser.py -v
-
-# Run specific test class
-python -m pytest test_parser.py::TestInputValidator -v
-
-# Run with coverage
-python -m pytest test_parser.py --cov=. --cov-report=html
-```
+- **String Operations**: Uses list joining instead of concatenation
+- **Batch Processing**: Processes large documents in chunks
+- **Memory Management**: Efficient resource cleanup
+- **Parallel Processing**: Multi-threaded content extraction
+- **Caching**: LRU cache for repeated operations
 
 ## Error Handling
 
-The application includes comprehensive error handling:
+- **Input Validation**: PDF file validation and search query checks
+- **Exception Handling**: Specific exception types with proper logging
+- **Resource Management**: Context managers for file operations
+- **Fallback Strategies**: Graceful degradation on errors
+- **Comprehensive Logging**: Detailed error tracking and statistics
 
-- **Input Validation**: Validates PDF files, search queries, and output paths
-- **Logging**: Centralized logging to console and file
-- **Custom Exceptions**: Clear error messages for different failure modes
-- **Resource Management**: Proper cleanup with context managers
+## Deliverables
 
-## Performance Features
-
-- **Memory Efficient**: Uses generators and context managers
-- **Batch Processing**: Processes content in configurable batches
-- **Optimized Parsing**: Compiled regex patterns and efficient data structures
-- **Resource Cleanup**: Automatic PDF document closure
+1. **Parsed TOC**: `usb_pd_toc.jsonl` - Structured table of contents
+2. **Full Content**: `usb_pd_spec.jsonl` - Complete document content
+3. **Validation Report**: `validation_report.xlsx` - TOC accuracy analysis
+4. **Performance Metrics**: Processing time and success rates
+5. **Error Logs**: Comprehensive logging for debugging
 
 ## Requirements
 
 - Python 3.7+
 - PyMuPDF (fitz) >= 1.23.0
 - PyYAML >= 6.0
-
-## Changelog
-
-### v2.0.0 - Production Release
-- Added comprehensive logging system
-- Implemented input validation with custom exceptions
-- Refactored to proper OOP design with classes
-- Added unit tests for critical functionality
-- Improved error handling and resource management
-- Performance optimizations with context managers
-- Added detailed documentation and configuration
-
-### v1.0.0 - Initial Release
-- Basic PDF parsing functionality
-- TOC extraction and content parsing
-- Simple command-line interface
+- pandas >= 1.3.0 (for reports)
+- openpyxl >= 3.0.0 (for Excel output)
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License

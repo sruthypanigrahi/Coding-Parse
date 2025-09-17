@@ -170,7 +170,9 @@ class SectionFilter:
             # Check if parent exists in filtered set
             if entry.parent_id and entry.parent_id not in section_ids:
                 # Find closest existing parent
-                entry.parent_id = self._find_closest_parent(entry.section_id, section_ids)
+                entry.parent_id = (
+                    self._find_closest_parent(entry.section_id, section_ids)
+                )
         
         return entries
     

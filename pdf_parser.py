@@ -6,16 +6,16 @@ from typing import List, Iterator, Optional
 import time
 
 from models import TOCEntry, ProcessingStats
-from interfaces import Parseable, Cacheable
+
 from constants import DOC_TITLE, SECTION_TITLE_PATTERN
 from logger_config import setup_logger
 from validators import InputValidator, ValidationError
-from performance_cache import cached, memory_cache
+
 
 logger = setup_logger(__name__)
 
 
-class PDFParser(Parseable, Cacheable):
+class PDFParser:
     """High-performance PDF parser with caching and optimization"""
     
     def __init__(self, pdf_path: str):
@@ -55,17 +55,9 @@ class PDFParser(Parseable, Cacheable):
             logger.error(f"PDF validation failed: {e}")
             return False
     
-    def get_cache_key(self) -> str:
-        """Generate cache key based on file path and modification time"""
-        stat = self.pdf_path.stat()
-        return f"pdf_toc_{self.pdf_path}_{stat.st_mtime}_{stat.st_size}"
+
     
-    def is_cache_valid(self) -> bool:
-        """Check if cached data is still valid"""
-        cache_key = self.get_cache_key()
-        return memory_cache.get(cache_key) is not None
-    
-    @cached(ttl=3600, use_file_cache=True)
+
     def parse(self) -> List[TOCEntry]:
         """Parse PDF with caching support"""
         if not self.validate_input():
@@ -79,7 +71,9 @@ class PDFParser(Parseable, Cacheable):
             
             self.stats.processing_time = time.time() - start_time
             self.stats.total_sections = len(structured_entries)
-            self.stats.processed_sections = len([e for e in structured_entries if e.section_id])
+            self.stats.processed_sections = (
+                len([e for e in structured_entries if e.section_id])
+            )
             
             logger.info(f"Parsed {len(structured_entries)} TOC entries in "
                        f"{self.stats.processing_time:.2f}s")
@@ -166,6 +160,14 @@ class PDFParser(Parseable, Cacheable):
         
         logger.debug(f"Built hierarchy for {len(result)} entries")
         return result
+    
+    def extract_toc(self) -> List[TOCEntry]:
+        """Extract TOC entries (alias for parse method)"""
+        return self._extract_toc_entries()
+    
+    def build_hierarchy(self, entries: List[TOCEntry]) -> List[TOCEntry]:
+        """Build hierarchy from raw entries"""
+        return self._build_hierarchy(entries)
     
     def get_stats(self) -> ProcessingStats:
         """Get processing statistics"""

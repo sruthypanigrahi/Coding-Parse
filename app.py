@@ -17,8 +17,22 @@ from parser_service import get_parser_service, get_search_service
 def main() -> int:
     """Application entry point - delegates to services.
     
+    This function serves as the main CLI interface for the USB Power Delivery
+    PDF Parser. It handles command-line argument parsing and delegates all
+    business logic to appropriate service layers.
+    
+    Supported Commands:
+        parse [pdf_file]: Extract TOC and content from PDF
+        search <query>: Search extracted TOC entries
+    
     Returns:
-        Exit code
+        int: Exit code (0 for success, 1 for failure)
+        
+    Examples:
+        >>> main()  # With sys.argv = ['app.py', 'parse']
+        0
+        >>> main()  # With sys.argv = ['app.py', 'search', 'USB']
+        0
     """
     if len(sys.argv) < 2:
         print("Usage: python app.py [parse|search] [args]")

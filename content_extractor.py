@@ -9,15 +9,15 @@ import threading
 from models import (
     TOCEntry, ContentEntry, ImageInfo, TableInfo, ProcessingStats
 )
-from interfaces import Extractable
+
 from constants import DOC_TITLE, PROGRESS_INTERVAL, CONTENT_LIMIT
 from logger_config import setup_logger
-from performance_cache import cached
+
 
 logger = setup_logger(__name__)
 
 
-class ContentExtractor(Extractable):
+class ContentExtractor:
     """High-performance content extractor with parallel processing"""
     
     def __init__(self, pdf_path: str, max_workers: int = 4):
@@ -48,9 +48,7 @@ class ContentExtractor(Extractable):
             self._doc.close()
             self._doc = None
     
-    def extract(self) -> List[ContentEntry]:
-        """Main extraction method (Extractable interface)"""
-        return self.extract_content([])
+
     
     def extract_content(
         self, toc_entries: List[TOCEntry]
@@ -198,13 +196,15 @@ class ContentExtractor(Extractable):
         start_page = max(1, section.page)
         
         if index + 1 < len(all_sections):
-            end_page = min(all_sections[index + 1].page - 1, self.stats.total_pages)
+            end_page = (
+                min(all_sections[index + 1].page - 1, self.stats.total_pages)
+            )
         else:
             end_page = self.stats.total_pages
         
         return start_page, end_page
     
-    @cached(ttl=1800)
+
     def _extract_text_optimized(self, page_range: Tuple[int, int]) -> str:
         """Extract text with caching and optimization"""
         content_parts = []
@@ -214,16 +214,22 @@ class ContentExtractor(Extractable):
                 page = self._doc[page_num]
                 
                 # Use optimized text extraction
-                text = page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+                text = (
+                    page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+                )
                 if text and text.strip():
                     content_parts.append(text.strip())
                 
             except (fitz.FileDataError, fitz.EmptyFileError, AttributeError) as e:
-                logger.warning(f"Text extraction failed for page {page_num + 1}: {e}")
+                logger.warning(
+                    f"Text extraction failed for page {page_num + 1}: {e}"
+                )
                 self.stats.add_error(f"Page {page_num + 1} text: {e}")
                 continue
             except Exception as e:
-                logger.error(f"Unexpected error extracting text from page {page_num + 1}: {e}")
+                logger.error(
+                    f"Unexpected error extracting text from page {page_num + 1}: {e}"
+                )
                 self.stats.add_error(f"Page {page_num + 1} unexpected: {e}")
                 continue
         
@@ -268,7 +274,9 @@ class ContentExtractor(Extractable):
                 logger.debug(f"Image extraction failed for page {page_num + 1}: {e}")
                 continue
             except Exception as e:
-                logger.error(f"Unexpected error in image extraction page {page_num + 1}: {e}")
+                logger.error(
+                    f"Unexpected error in image extraction page {page_num + 1}: {e}"
+                )
                 continue
         
         return images
@@ -296,7 +304,9 @@ class ContentExtractor(Extractable):
             logger.debug(f"Table extraction failed for page {page_num + 1}: {e}")
             return []
         except Exception as e:
-            logger.error(f"Unexpected error extracting tables from page {page_num + 1}: {e}")
+            logger.error(
+                f"Unexpected error extracting tables from page {page_num + 1}: {e}"
+            )
             return []
     
     def _try_structured_extraction(
@@ -368,7 +378,9 @@ class ContentExtractor(Extractable):
         logger.info(f"Total tables: {self.stats.total_tables}")
         
         if self.stats.errors:
-            logger.warning(f"Encountered {len(self.stats.errors)} errors during extraction")
+            logger.warning(
+                f"Encountered {len(self.stats.errors)} errors during extraction"
+            )
     
     def get_stats(self) -> ProcessingStats:
         """Get processing statistics"""

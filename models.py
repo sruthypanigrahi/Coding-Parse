@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from abc import ABC, abstractmethod
 import json
-from interfaces import Serializable
+
 
 
 @dataclass
-class BaseModel(Serializable):
+class BaseModel:
     """Base model with common functionality"""
     
     def to_dict(self) -> Dict[str, Any]:
