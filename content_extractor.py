@@ -190,7 +190,8 @@ class ContentExtractor:
         
         return content_entry
     
-    def _calculate_page_range(self, section: TOCEntry, all_sections: List[TOCEntry], 
+    def _calculate_page_range(self, section: TOCEntry,
+        all_sections: List[TOCEntry],
                             index: int) -> Tuple[int, int]:
         """Calculate optimal page range for section"""
         start_page = max(1, section.page)
@@ -283,7 +284,9 @@ class ContentExtractor:
                         continue
                         
             except (fitz.FileDataError, AttributeError) as e:
-                logger.debug(f"Image extraction failed for page {page_num + 1}: {e}")
+                logger.debug(
+                    f"Image extraction failed for page {page_num + 1}: {e}"
+                )
                 continue
             except Exception as e:
                 logger.error(
@@ -321,7 +324,9 @@ class ContentExtractor:
                 page_num
             )
         except (fitz.FileDataError, AttributeError) as e:
-            logger.debug(f"Table extraction failed for page {page_num + 1}: {e}")
+            logger.debug(
+                f"Table extraction failed for page {page_num + 1}: {e}"
+            )
             return []
         except Exception as e:
             logger.error(

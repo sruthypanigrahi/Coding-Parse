@@ -35,7 +35,9 @@ class NumberedSectionFilter(BaseFilter):
     
     def __init__(self):
         self._pattern = re.compile(SECTION_PATTERN)
-        logger.debug(f"Initialized NumberedSectionFilter with pattern: {SECTION_PATTERN}")
+        logger.debug(
+            f"Initialized NumberedSectionFilter with pattern: {SECTION_PATTERN}"
+        )
     
     def filter(self, entries: List[TOCEntry]) -> List[TOCEntry]:
         """Filter to keep only numbered sections"""
@@ -99,7 +101,9 @@ class ContentFilter(BaseFilter):
             
             filtered.append(entry)
         
-        logger.debug(f"Content filter: {len(entries)} -> {len(filtered)} entries")
+        logger.debug(
+            f"Content filter: {len(entries)} -> {len(filtered)} entries"
+        )
         return filtered
 
 
@@ -108,7 +112,9 @@ class CompositeFilter(BaseFilter):
     
     def __init__(self, filters: List[BaseFilter]):
         self.filters = filters
-        logger.debug(f"Created composite filter with {len(filters)} sub-filters")
+        logger.debug(
+            f"Created composite filter with {len(filters)} sub-filters"
+        )
     
     def filter(self, entries: List[TOCEntry]) -> List[TOCEntry]:
         """Apply all filters in sequence"""
@@ -117,7 +123,9 @@ class CompositeFilter(BaseFilter):
         for i, filter_instance in enumerate(self.filters):
             initial_count = len(result)
             result = filter_instance.filter(result)
-            logger.debug(f"Filter {i+1}: {initial_count} -> {len(result)} entries")
+            logger.debug(
+                f"Filter {i+1}: {initial_count} -> {len(result)} entries"
+            )
         
         logger.info(
             f"Composite filter: {len(entries)} -> {len(result)} entries"
@@ -144,7 +152,8 @@ class SectionFilter:
         else:
             self._filter = NumberedSectionFilter()
     
-    def filter_numbered_sections(self, entries: List[TOCEntry]) -> List[TOCEntry]:
+    def filter_numbered_sections(self,
+        entries: List[TOCEntry]) -> List[TOCEntry]:
         """Filter entries to keep only numbered sections"""
         if not entries:
             logger.warning("No entries provided for filtering")
@@ -162,7 +171,8 @@ class SectionFilter:
             logger.error(f"Filtering failed: {e}")
             return entries  # Return original on error
     
-    def _ensure_hierarchy_consistency(self, entries: List[TOCEntry]) -> List[TOCEntry]:
+    def _ensure_hierarchy_consistency(self,
+        entries: List[TOCEntry]) -> List[TOCEntry]:
         """Ensure parent-child relationships are consistent"""
         section_ids = {entry.section_id for entry in entries}
         

@@ -97,7 +97,8 @@ class ValidationReportGenerator:
                     'title': title,
                     'source_page': source_entry['page'],
                     'parsed_page': parsed_entry.get('page', 0),
-                    'page_match': source_entry['page'] == parsed_entry.get('page', 0),
+                    'page_match': source_entry['page'] == parsed_entry.get('page',
+                        0),
                     'status': 'MATCHED'
                 }
             else:
@@ -133,13 +134,25 @@ class ValidationReportGenerator:
             # Create CSV format for Excel compatibility
             csv_content = []
             csv_content.append("Metric,Value")
-            csv_content.append(f"Total Source Entries,{results['total_source_entries']}")
-            csv_content.append(f"Total Parsed Entries,{results['total_parsed_entries']}")
-            csv_content.append(f"Matched Entries,{results['matched_entries']}")
-            csv_content.append(f"Missing Entries,{len(results['missing_entries'])}")
-            csv_content.append(f"Accuracy Percentage,{results['accuracy_percentage']:.2f}%")
+            csv_content.append(
+                f"Total Source Entries,{results['total_source_entries']}"
+            )
+            csv_content.append(
+                f"Total Parsed Entries,{results['total_parsed_entries']}"
+            )
+            csv_content.append(
+                f"Matched Entries,{results['matched_entries']}"
+            )
+            csv_content.append(
+                f"Missing Entries,{len(results['missing_entries'])}"
+            )
+            csv_content.append(
+                f"Accuracy Percentage,{results['accuracy_percentage']:.2f}%"
+            )
             csv_content.append("")
-            csv_content.append("Title,Source Page,Parsed Page,Page Match,Status")
+            csv_content.append(
+                "Title,Source Page,Parsed Page,Page Match,Status"
+            )
             
             for comparison in results['detailed_comparison']:
                 csv_content.append(

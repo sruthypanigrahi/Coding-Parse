@@ -7,7 +7,9 @@ from pdf_parser import PDFParser, JSONLWriter
 from content_extractor import ContentExtractor
 from filter import SectionFilter
 from search import TOCSearcher
-from constants import ASSETS_FOLDER, DEFAULT_PDF_FILE, TOC_OUTPUT_FILE, CONTENT_OUTPUT_FILE
+from constants import (
+    ASSETS_FOLDER, DEFAULT_PDF_FILE, TOC_OUTPUT_FILE, CONTENT_OUTPUT_FILE
+)
 from logger_config import setup_logger
 from validators import InputValidator, ValidationError
 from models import ProcessingStats
