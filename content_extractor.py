@@ -183,8 +183,13 @@ class ContentExtractor(Extractable):
                 if text and text.strip():
                     content_parts.append(text.strip())
                 
+            except (fitz.FileDataError, fitz.EmptyFileError, AttributeError) as e:
+                logger.warning(f"Text extraction failed for page {page_num + 1}: {e}")
+                self.stats.add_error(f"Page {page_num + 1} text: {e}")
+                continue
             except Exception as e:
-                logger.debug(f"Text extraction failed for page {page_num + 1}: {e}")
+                logger.error(f"Unexpected error extracting text from page {page_num + 1}: {e}")
+                self.stats.add_error(f"Page {page_num + 1} unexpected: {e}")
                 continue
         
         return "\n".join(content_parts)
@@ -213,12 +218,18 @@ class ContentExtractor(Extractable):
                         )
                         images.append(image_info)
                         
-                    except Exception as e:
+                    except (IndexError, KeyError, ValueError) as e:
                         logger.debug(f"Image info extraction failed: {e}")
                         continue
+                    except Exception as e:
+                        logger.warning(f"Unexpected image error: {e}")
+                        continue
                         
-            except Exception as e:
+            except (fitz.FileDataError, AttributeError) as e:
                 logger.debug(f"Image extraction failed for page {page_num + 1}: {e}")
+                continue
+            except Exception as e:
+                logger.error(f"Unexpected error in image extraction page {page_num + 1}: {e}")
                 continue
         
         return images
@@ -228,51 +239,73 @@ class ContentExtractor(Extractable):
         tables = []
         
         for page_num in range(page_range[0] - 1, min(page_range[1], self.stats.total_pages)):
-            try:
-                page = self._doc[page_num]
-                
-                # Try structured table extraction first
-                try:
-                    table_list = page.find_tables()
-                    for idx, table in enumerate(table_list):
-                        try:
-                            data = table.extract()
-                            if data:  # Only add non-empty tables
-                                table_info = TableInfo(
-                                    page=page_num + 1,
-                                    index=idx + 1,
-                                    rows=len(data),
-                                    cols=len(data[0]) if data else 0,
-                                    data=data[:10]  # Limit data for performance
-                                )
-                                tables.append(table_info)
-                                
-                        except Exception as e:
-                            logger.debug(f"Table data extraction failed: {e}")
-                            continue
-                            
-                except Exception:
-                    # Fallback to text-based table detection
-                    text = page.get_text()
-                    table_count = text.count('Table ') + text.count('TABLE ')
-                    
-                    if table_count > 0:
-                        # Create placeholder table info
-                        table_info = TableInfo(
-                            page=page_num + 1,
-                            index=1,
-                            rows=0,
-                            cols=0,
-                            data=[],
-                            metadata={'detected_mentions': table_count}
-                        )
-                        tables.append(table_info)
-                        
-            except Exception as e:
-                logger.debug(f"Table extraction failed for page {page_num + 1}: {e}")
-                continue
+            page_tables = self._extract_page_tables(page_num)
+            tables.extend(page_tables)
         
         return tables
+    
+    def _extract_page_tables(self, page_num: int) -> List[TableInfo]:
+        """Extract tables from a single page"""
+        try:
+            page = self._doc[page_num]
+            return self._try_structured_extraction(page, page_num) or self._try_fallback_extraction(page, page_num)
+        except (fitz.FileDataError, AttributeError) as e:
+            logger.debug(f"Table extraction failed for page {page_num + 1}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error extracting tables from page {page_num + 1}: {e}")
+            return []
+    
+    def _try_structured_extraction(self, page, page_num: int) -> List[TableInfo]:
+        """Try structured table extraction"""
+        try:
+            table_list = page.find_tables()
+            tables = []
+            
+            for idx, table in enumerate(table_list):
+                table_info = self._extract_table_data(table, page_num, idx)
+                if table_info:
+                    tables.append(table_info)
+            
+            return tables
+        except Exception:
+            return []
+    
+    def _extract_table_data(self, table, page_num: int, idx: int) -> Optional[TableInfo]:
+        """Extract data from a single table"""
+        try:
+            data = table.extract()
+            if data:
+                return TableInfo(
+                    page=page_num + 1,
+                    index=idx + 1,
+                    rows=len(data),
+                    cols=len(data[0]) if data else 0,
+                    data=data[:10]  # Limit data for performance
+                )
+        except (IndexError, ValueError) as e:
+            logger.debug(f"Table data extraction failed: {e}")
+        return None
+    
+    def _try_fallback_extraction(self, page, page_num: int) -> List[TableInfo]:
+        """Fallback to text-based table detection"""
+        try:
+            text = page.get_text()
+            table_count = text.count('Table ') + text.count('TABLE ')
+            
+            if table_count > 0:
+                return [TableInfo(
+                    page=page_num + 1,
+                    index=1,
+                    rows=0,
+                    cols=0,
+                    data=[],
+                    metadata={'detected_mentions': table_count}
+                )]
+        except Exception as e:
+            logger.debug(f"Fallback table detection failed: {e}")
+        
+        return []
     
     def _log_stats(self) -> None:
         """Log comprehensive extraction statistics"""
