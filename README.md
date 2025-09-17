@@ -62,13 +62,11 @@ python app.py search "2.1.3"
 python app.py search "cable assembly"
 ```
 
-### Generate Reports
+### Search Content
 ```bash
-# Validation report
-python validation_report.py
-
-# Performance report
-python performance_optimizer.py
+# Search parsed content
+python app.py search "power delivery"
+python app.py search "2.1.3"
 ```
 
 ## Output Files
@@ -82,12 +80,9 @@ python performance_optimizer.py
 ## Testing & Quality
 
 ```bash
-# Run unit tests
-python -m unittest discover -v
-
-# Run with coverage
-python -m coverage run -m unittest discover
-python -m coverage report
+# Basic functionality test
+python app.py parse
+python app.py search "USB"
 
 # Code quality checks
 flake8 . --max-line-length=88

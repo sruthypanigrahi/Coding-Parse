@@ -10,7 +10,9 @@ from models import (
     TOCEntry, ContentEntry, ImageInfo, TableInfo, ProcessingStats
 )
 
-from constants import DOC_TITLE, PROGRESS_INTERVAL, CONTENT_LIMIT
+from constants import (
+    DOC_TITLE, PROGRESS_INTERVAL, CONTENT_LIMIT, MAX_WORKERS, PARALLEL_THRESHOLD
+)
 from logger_config import setup_logger
 
 
@@ -20,10 +22,10 @@ logger = setup_logger(__name__)
 class ContentExtractor:
     """High-performance content extractor with parallel processing"""
     
-    def __init__(self, pdf_path: str, max_workers: int = 4):
+    def __init__(self, pdf_path: str, max_workers: int = None):
         self.pdf_path = Path(pdf_path)
         self.doc_title = DOC_TITLE
-        self.max_workers = max_workers
+        self.max_workers = max_workers or MAX_WORKERS
         self._doc: Optional[fitz.Document] = None
         self.stats = ProcessingStats()
         self._lock = threading.Lock()
@@ -63,7 +65,7 @@ class ContentExtractor:
         )
         
         # Use parallel processing for large documents
-        if len(toc_entries) > 50:
+        if len(toc_entries) > PARALLEL_THRESHOLD:
             content_entries = self._extract_parallel(toc_entries)
         else:
             content_entries = self._extract_sequential(toc_entries)

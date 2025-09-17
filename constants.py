@@ -21,6 +21,8 @@ DEFAULT_PDF_FILE = CONFIG['files']['default_pdf']
 DOC_TITLE = CONFIG['parser']['doc_title']
 PROGRESS_INTERVAL = CONFIG['parser']['progress_interval']
 CONTENT_LIMIT = CONFIG['parser']['content_limit']
+MAX_WORKERS = CONFIG['parser'].get('max_workers', 4)
+PARALLEL_THRESHOLD = CONFIG['parser'].get('parallel_threshold', 50)
 
 # Regex patterns
 SECTION_PATTERN = CONFIG['patterns']['section_regex']

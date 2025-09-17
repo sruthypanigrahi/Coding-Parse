@@ -11,6 +11,8 @@ parser:
   doc_title: "USB Power Delivery Specification"
   progress_interval: 200
   content_limit: 10000
+  max_workers: 4
+  parallel_threshold: 50
 
 patterns:
   section_regex: "^(\\d+(?:\\.\\d+)*)\\s+(.+)$"

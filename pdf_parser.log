@@ -1,5 +1,22 @@
-2025-09-18 00:50:55,024 - __main__ - INFO - Starting validation report generation
-2025-09-18 00:50:55,031 - __main__ - WARNING - TOC file not found: usb_pd_toc.jsonl
-2025-09-18 00:50:55,595 - __main__ - INFO - JSON report saved: validation_report.json
-2025-09-18 00:50:55,598 - __main__ - INFO - Excel-compatible report saved: validation_report.csv
-2025-09-18 00:50:55,599 - __main__ - INFO - Validation report generated successfully
+2025-09-18 01:24:38,416 - search - INFO - Rebuilt search index with 1313 entries
+2025-09-18 01:26:41,656 - parser_service - INFO - Starting PDF parsing: assets\USB_PD_R3_2 V1.1 2024-10.pdf
+2025-09-18 01:26:41,811 - pdf_parser - INFO - Opened PDF: assets\USB_PD_R3_2 V1.1 2024-10.pdf (1047 pages)
+2025-09-18 01:26:41,904 - pdf_parser - INFO - Extracted 1360 raw TOC entries
+2025-09-18 01:26:41,940 - filter - INFO - Filtered 1313 entries to 1313 numbered sections
+2025-09-18 01:26:41,988 - pdf_parser - INFO - Saved 1313 entries to usb_pd_toc.jsonl
+2025-09-18 01:26:42,187 - content_extractor - INFO - Opened PDF for content extraction: 1047 pages
+2025-09-18 01:26:42,189 - content_extractor - INFO - Starting content extraction for 1313 sections
+2025-09-18 01:27:01,444 - content_extractor - INFO - Processed 200/1313 sections
+2025-09-18 01:27:11,958 - content_extractor - INFO - Processed 400/1313 sections
+2025-09-18 01:27:22,031 - content_extractor - INFO - Processed 600/1313 sections
+2025-09-18 01:27:45,286 - content_extractor - INFO - Processed 800/1313 sections
+2025-09-18 01:28:31,201 - content_extractor - INFO - Processed 1000/1313 sections
+2025-09-18 01:28:46,898 - content_extractor - INFO - Processed 1200/1313 sections
+2025-09-18 01:29:11,937 - content_extractor - INFO - Content extraction completed
+2025-09-18 01:29:11,938 - content_extractor - INFO - Processing time: 149.75s
+2025-09-18 01:29:11,938 - content_extractor - INFO - Success rate: 100.0%
+2025-09-18 01:29:11,939 - content_extractor - INFO - Total images: 4814
+2025-09-18 01:29:11,939 - content_extractor - INFO - Total tables: 108
+2025-09-18 01:29:12,239 - pdf_parser - INFO - Saved 1313 entries to usb_pd_spec.jsonl
+2025-09-18 01:29:30,939 - search - INFO - Rebuilt search index with 1313 entries
+2025-09-18 01:29:43,983 - search - INFO - Rebuilt search index with 1313 entries

@@ -56,8 +56,14 @@ class NumberedSectionFilter(BaseFilter):
         return filtered
     
     def _is_numbered_section(self, entry: TOCEntry) -> bool:
-        """Check if entry has numeric section ID using compiled regex"""
-        return bool(entry.section_id and self._pattern.match(entry.section_id))
+        """Check if entry has numeric section ID"""
+        if not entry.section_id:
+            return False
+        
+        # Check if section_id matches numeric pattern (e.g., '1', '1.1', '1.2.3')
+        import re
+        numeric_pattern = re.compile(r'^\d+(?:\.\d+)*$')
+        return bool(numeric_pattern.match(entry.section_id))
 
 
 class LevelFilter(BaseFilter):
