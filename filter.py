@@ -1,17 +1,26 @@
+
 import re
+from typing import List
+from models import TOCEntry
 from constants import SECTION_PATTERN
 
 
-def filter_numbered_sections(entries):
-    """Keep only entries with numeric section IDs"""
-    pattern = re.compile(SECTION_PATTERN)
-    filtered = []
+class SectionFilter:
+    def __init__(self):
+        self._pattern = re.compile(SECTION_PATTERN)
     
-    for entry in entries:
-        section_id = entry.get('section_id', '')
-        if section_id and pattern.match(section_id):
-            if not entry.get('parent_id'):
-                entry['parent_id'] = None
-            filtered.append(entry)
+    def filter_numbered_sections(self, entries: List[TOCEntry]) -> List[TOCEntry]:
+        """Filter entries to keep only numbered sections"""
+        filtered = []
+        
+        for entry in entries:
+            if self._is_numbered_section(entry):
+                if not entry.parent_id:
+                    entry.parent_id = None
+                filtered.append(entry)
+        
+        return filtered
     
-    return filtered
+    def _is_numbered_section(self, entry: TOCEntry) -> bool:
+        """Check if entry has numeric section ID"""
+        return bool(entry.section_id and self._pattern.match(entry.section_id))
