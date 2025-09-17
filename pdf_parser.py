@@ -29,7 +29,9 @@ class PDFParser(Parseable, Cacheable):
         """Context manager entry"""
         try:
             self._doc = fitz.open(self.pdf_path)
-            logger.info(f"Opened PDF: {self.pdf_path} ({len(self._doc)} pages)")
+            logger.info(
+                f"Opened PDF: {self.pdf_path} ({len(self._doc)} pages)"
+            )
             return self
         except Exception as e:
             logger.error(f"Failed to open PDF {self.pdf_path}: {e}")

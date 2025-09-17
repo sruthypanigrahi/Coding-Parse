@@ -6,7 +6,9 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
-from models import TOCEntry, ContentEntry, ImageInfo, TableInfo, ProcessingStats
+from models import (
+    TOCEntry, ContentEntry, ImageInfo, TableInfo, ProcessingStats
+)
 from interfaces import Extractable
 from constants import DOC_TITLE, PROGRESS_INTERVAL, CONTENT_LIMIT
 from logger_config import setup_logger
@@ -31,7 +33,10 @@ class ContentExtractor(Extractable):
         try:
             self._doc = fitz.open(self.pdf_path)
             self.stats.total_pages = len(self._doc)
-            logger.info(f"Opened PDF for content extraction: {self.stats.total_pages} pages")
+            logger.info(
+                f"Opened PDF for content extraction: "
+                f"{self.stats.total_pages} pages"
+            )
             return self
         except Exception as e:
             logger.error(f"Failed to open PDF for content extraction: {e}")
@@ -47,13 +52,17 @@ class ContentExtractor(Extractable):
         """Main extraction method (Extractable interface)"""
         return self.extract_content([])
     
-    def extract_content(self, toc_entries: List[TOCEntry]) -> List[ContentEntry]:
+    def extract_content(
+        self, toc_entries: List[TOCEntry]
+    ) -> List[ContentEntry]:
         """Extract content with parallel processing for performance"""
         if not self._doc:
             raise RuntimeError("PDF not opened")
         
         start_time = time.time()
-        logger.info(f"Starting content extraction for {len(toc_entries)} sections")
+        logger.info(
+            f"Starting content extraction for {len(toc_entries)} sections"
+        )
         
         # Use parallel processing for large documents
         if len(toc_entries) > 50:
@@ -63,19 +72,25 @@ class ContentExtractor(Extractable):
         
         self.stats.processing_time = time.time() - start_time
         self.stats.total_sections = len(toc_entries)
-        self.stats.processed_sections = len([e for e in content_entries if e.has_content])
+        self.stats.processed_sections = len(
+            [e for e in content_entries if e.has_content]
+        )
         
         self._log_stats()
         return content_entries
     
-    def _extract_parallel(self, toc_entries: List[TOCEntry]) -> List[ContentEntry]:
+    def _extract_parallel(
+        self, toc_entries: List[TOCEntry]
+    ) -> List[ContentEntry]:
         """Extract content using parallel processing"""
         content_entries = [None] * len(toc_entries)
         
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit tasks
             future_to_index = {
-                executor.submit(self._extract_section_safe, entry, toc_entries, i): i
+                executor.submit(
+                    self._extract_section_safe, entry, toc_entries, i
+                ): i
                 for i, entry in enumerate(toc_entries)
             }
             
@@ -88,7 +103,9 @@ class ContentExtractor(Extractable):
                     completed += 1
                     
                     if completed % PROGRESS_INTERVAL == 0:
-                        logger.info(f"Processed {completed}/{len(toc_entries)} sections")
+                        logger.info(
+                            f"Processed {completed}/{len(toc_entries)} sections"
+                        )
                         
                 except Exception as e:
                     logger.error(f"Failed to process section {index}: {e}")
@@ -96,36 +113,54 @@ class ContentExtractor(Extractable):
         
         return [entry for entry in content_entries if entry is not None]
     
-    def _extract_sequential(self, toc_entries: List[TOCEntry]) -> List[ContentEntry]:
+    def _extract_sequential(
+        self, toc_entries: List[TOCEntry]
+    ) -> List[ContentEntry]:
         """Extract content sequentially for smaller documents"""
         content_entries = []
         
         for i, entry in enumerate(toc_entries):
             try:
-                content_entry = self._extract_section_content(entry, toc_entries, i)
+                content_entry = self._extract_section_content(
+                    entry, toc_entries, i
+                )
                 content_entries.append(content_entry)
                 
                 if (i + 1) % PROGRESS_INTERVAL == 0:
-                    logger.info(f"Processed {i + 1}/{len(toc_entries)} sections")
+                    logger.info(
+                        f"Processed {i + 1}/{len(toc_entries)} sections"
+                    )
                     
             except Exception as e:
-                logger.error(f"Failed to process section {entry.section_id}: {e}")
+                logger.error(
+                    f"Failed to process section {entry.section_id}: {e}"
+                )
                 self.stats.add_error(f"Section {entry.section_id}: {e}")
                 continue
         
         return content_entries
     
-    def _extract_section_safe(self, section: TOCEntry, all_sections: List[TOCEntry], 
-                             index: int) -> Optional[ContentEntry]:
+    def _extract_section_safe(
+        self, 
+        section: TOCEntry, 
+        all_sections: List[TOCEntry], 
+        index: int
+    ) -> Optional[ContentEntry]:
         """Thread-safe section extraction wrapper"""
         try:
             return self._extract_section_content(section, all_sections, index)
         except Exception as e:
-            logger.error(f"Thread-safe extraction failed for {section.section_id}: {e}")
+            logger.error(
+                f"Thread-safe extraction failed for {section.section_id}: {e}"
+            )
             return None
     
-    def _extract_section_content(self, section: TOCEntry, all_sections: List[TOCEntry], 
-                                index: int) -> ContentEntry:
+    def _extract_section_content(
+        self, 
+        section: TOCEntry, 
+        all_sections: List[TOCEntry], 
+        index: int
+    ) -> ContentEntry:
         """Extract content for a single section with optimization"""
         page_range = self._calculate_page_range(section, all_sections, index)
         
@@ -194,7 +229,11 @@ class ContentExtractor(Extractable):
         
         return "\n".join(content_parts)
     
-    def _extract_images_batch(self, page_range: Tuple[int, int]) -> List[ImageInfo]:
+    def _extract_images_batch(
+        self,
+        page_range: Tuple[int,
+        int]
+    ) -> List[ImageInfo]:
         """Extract images in batch for performance"""
         images = []
         
@@ -234,7 +273,11 @@ class ContentExtractor(Extractable):
         
         return images
     
-    def _extract_tables_batch(self, page_range: Tuple[int, int]) -> List[TableInfo]:
+    def _extract_tables_batch(
+        self,
+        page_range: Tuple[int,
+        int]
+    ) -> List[TableInfo]:
         """Extract tables in batch with optimization"""
         tables = []
         
@@ -256,7 +299,11 @@ class ContentExtractor(Extractable):
             logger.error(f"Unexpected error extracting tables from page {page_num + 1}: {e}")
             return []
     
-    def _try_structured_extraction(self, page, page_num: int) -> List[TableInfo]:
+    def _try_structured_extraction(
+        self,
+        page,
+        page_num: int
+    ) -> List[TableInfo]:
         """Try structured table extraction"""
         try:
             table_list = page.find_tables()
@@ -271,7 +318,12 @@ class ContentExtractor(Extractable):
         except Exception:
             return []
     
-    def _extract_table_data(self, table, page_num: int, idx: int) -> Optional[TableInfo]:
+    def _extract_table_data(
+        self,
+        table,
+        page_num: int,
+        idx: int
+    ) -> Optional[TableInfo]:
         """Extract data from a single table"""
         try:
             data = table.extract()

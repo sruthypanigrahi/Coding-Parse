@@ -95,7 +95,9 @@ class TOCSearcher:
                 entries = list(self._load_entries())
                 self.index.build_index(entries)
                 self._last_modified = current_modified
-                logger.info(f"Rebuilt search index with {len(entries)} entries")
+                logger.info(
+                    f"Rebuilt search index with {len(entries)} entries"
+                )
                 return True
             except Exception as e:
                 logger.error(f"Failed to build search index: {e}")

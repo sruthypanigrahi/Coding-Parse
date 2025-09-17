@@ -48,7 +48,9 @@ class NumberedSectionFilter(BaseFilter):
                     entry.parent_id = None
                 filtered.append(entry)
         
-        logger.info(f"Filtered {len(entries)} entries to {len(filtered)} numbered sections")
+        logger.info(
+            f"Filtered {len(entries)} entries to {len(filtered)} numbered sections"
+        )
         return filtered
     
     def _is_numbered_section(self, entry: TOCEntry) -> bool:
@@ -117,7 +119,9 @@ class CompositeFilter(BaseFilter):
             result = filter_instance.filter(result)
             logger.debug(f"Filter {i+1}: {initial_count} -> {len(result)} entries")
         
-        logger.info(f"Composite filter: {len(entries)} -> {len(result)} entries")
+        logger.info(
+            f"Composite filter: {len(entries)} -> {len(result)} entries"
+        )
         return result
     
     def add_filter(self, filter_instance: BaseFilter) -> None:

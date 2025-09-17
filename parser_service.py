@@ -91,7 +91,11 @@ class ParserService:
             self.stats.add_error(f"TOC extraction: {e}")
             return []
     
-    def _extract_content_with_recovery(self, pdf_file: Path, toc_entries: list) -> list:
+    def _extract_content_with_recovery(
+        self,
+        pdf_file: Path,
+        toc_entries: list
+    ) -> list:
         """Extract content with error recovery and fallback strategies"""
         try:
             with ContentExtractor(str(pdf_file), max_workers=2) as extractor:
@@ -141,7 +145,12 @@ class ParserService:
         else:
             return Path(ASSETS_FOLDER) / pdf_arg
     
-    def _create_success_result(self, toc_entries: list, content_entries: list) -> Dict[str, Any]:
+    def _create_success_result(
+        self,
+        toc_entries: list,
+        content_entries: list
+    ) -> Dict[str,
+        Any]:
         """Create success result dictionary"""
         return {
             'success': True,

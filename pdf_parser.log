@@ -13,3 +13,9 @@
 2025-09-17 12:43:17,760 - content_extractor - INFO - Total Tables: 2831
 2025-09-17 12:43:18,064 - pdf_parser - INFO - Saved 1313 entries to usb_pd_spec.jsonl
 2025-09-17 12:43:18,064 - parser_service - INFO - Content output: usb_pd_spec.jsonl (1313 entries)
+2025-09-17 19:17:16,340 - content_extractor - INFO - Opened PDF for content extraction: 0 pages
+2025-09-17 19:17:16,387 - parser_service - WARNING - Created 1 fallback content entries
+2025-09-17 19:17:16,390 - pdf_parser - ERROR - Failed to save test.jsonl: Permission denied
+2025-09-17 19:17:16,395 - parser_service - ERROR - Validation error: PDF file not found: assets\nonexistent.pdf
+2025-09-17 19:17:16,402 - pdf_parser - ERROR - Failed to open PDF test.pdf: File corrupted
+2025-09-17 19:17:16,414 - parser_service - ERROR - Search validation error: Search query cannot be empty
