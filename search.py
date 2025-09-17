@@ -67,7 +67,9 @@ class TOCSearcher:
                         continue
             
             self._index_built = True
-            logger.info(f"Rebuilt search index with {len(self.entries)} entries")
+            logger.info(
+                f"Rebuilt search index with {len(self.entries)} entries"
+            )
             
         except Exception as e:
             logger.error(f"Failed to build search index: {e}")

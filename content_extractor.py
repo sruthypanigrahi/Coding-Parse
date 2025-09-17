@@ -209,7 +209,11 @@ class ContentExtractor:
         """Extract text with caching and optimization"""
         content_parts = []
         
-        for page_num in range(page_range[0] - 1, min(page_range[1], self.stats.total_pages)):
+        for page_num in range(
+            page_range[0] - 1,
+            min(page_range[1],
+            self.stats.total_pages)
+        ):
             try:
                 page = self._doc[page_num]
                 
@@ -220,7 +224,11 @@ class ContentExtractor:
                 if text and text.strip():
                     content_parts.append(text.strip())
                 
-            except (fitz.FileDataError, fitz.EmptyFileError, AttributeError) as e:
+            except (
+                fitz.FileDataError,
+                fitz.EmptyFileError,
+                AttributeError
+            ) as e:
                 logger.warning(
                     f"Text extraction failed for page {page_num + 1}: {e}"
                 )
@@ -243,7 +251,11 @@ class ContentExtractor:
         """Extract images in batch for performance"""
         images = []
         
-        for page_num in range(page_range[0] - 1, min(page_range[1], self.stats.total_pages)):
+        for page_num in range(
+            page_range[0] - 1,
+            min(page_range[1],
+            self.stats.total_pages)
+        ):
             try:
                 page = self._doc[page_num]
                 image_list = page.get_images(full=True)
@@ -289,7 +301,11 @@ class ContentExtractor:
         """Extract tables in batch with optimization"""
         tables = []
         
-        for page_num in range(page_range[0] - 1, min(page_range[1], self.stats.total_pages)):
+        for page_num in range(
+            page_range[0] - 1,
+            min(page_range[1],
+            self.stats.total_pages)
+        ):
             page_tables = self._extract_page_tables(page_num)
             tables.extend(page_tables)
         
@@ -299,7 +315,11 @@ class ContentExtractor:
         """Extract tables from a single page"""
         try:
             page = self._doc[page_num]
-            return self._try_structured_extraction(page, page_num) or self._try_fallback_extraction(page, page_num)
+            return self._try_structured_extraction(
+                page,
+                page_num) or self._try_fallback_extraction(page,
+                page_num
+            )
         except (fitz.FileDataError, AttributeError) as e:
             logger.debug(f"Table extraction failed for page {page_num + 1}: {e}")
             return []

@@ -16,7 +16,11 @@ class BaseModel:
         for key, value in self.__dict__.items():
             if isinstance(value, BaseModel):
                 result[key] = value.to_dict()
-            elif isinstance(value, list) and value and isinstance(value[0], BaseModel):
+            elif isinstance(
+                value,
+                list) and value and isinstance(value[0],
+                BaseModel
+            ):
                 result[key] = [item.to_dict() for item in value]
             else:
                 result[key] = value

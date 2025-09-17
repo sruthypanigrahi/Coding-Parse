@@ -82,7 +82,11 @@ class ParserService:
         else:
             return Path(ASSETS_FOLDER) / pdf_arg
     
-    def _create_success_result(self, toc_entries: list, content_entries: list) -> Dict[str, Any]:
+    def _create_success_result(
+        self,
+        toc_entries: list,
+        content_entries: list
+    ) -> Dict[str, Any]:
         """Create success result"""
         return {
             'success': True,
