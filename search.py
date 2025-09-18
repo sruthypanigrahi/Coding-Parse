@@ -5,14 +5,14 @@ from pathlib import Path
 from typing import List, Dict, Any, Set
 from collections import defaultdict
 
-from models import TOCEntry
+from interfaces import Searchable
 from constants import TOC_OUTPUT_FILE
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
 
-class TOCSearcher:
+class TOCSearcher(Searchable):
     """Search engine for TOC entries"""
     
     def __init__(self):
@@ -20,6 +20,10 @@ class TOCSearcher:
         self.word_index: Dict[str, Set[int]] = defaultdict(set)
         self.section_index: Dict[str, int] = {}
         self._index_built = False
+    
+    def search(self, query: str) -> List[Dict[str, Any]]:
+        """Search TOC entries"""
+        return self.search_with_results(query)
     
     def search_with_results(self, query: str) -> List[Dict[str, Any]]:
         """Search TOC and return formatted results"""
