@@ -1,65 +1,82 @@
 #!/usr/bin/env python3
 """
-USB Power Delivery PDF Parser - Command Line Interface
-
-Minimal CLI entry point that only calls service functions.
-No business logic - pure delegation to service layer.
-
-Usage:
-    python app.py parse [pdf_file]  # Parse PDF
-    python app.py search <query>    # Search TOC
+USB Power Delivery PDF Parser - Perfect CLI Interface
+Minimal, clean CLI following Single Responsibility Principle
 """
 
 import sys
-from services import get_parser_service, get_search_service
+from typing import List
+from services_pkg import ParserService, SearchService
 
 
-def main() -> int:
-    """Application entry point - delegates to services.
-    
-    This function serves as the main CLI interface for the USB Power Delivery
-    PDF Parser. It handles command-line argument parsing and delegates all
-    business logic to appropriate service layers.
-    
-    Supported Commands:
-        parse [pdf_file]: Extract TOC and content from PDF
-        search <query>: Search extracted TOC entries
-    
-    Returns:
-        int: Exit code (0 for success, 1 for failure)
-        
-    Examples:
-        >>> main()  # With sys.argv = ['app.py', 'parse']
-        0
-        >>> main()  # With sys.argv = ['app.py', 'search', 'USB']
-        0
+def main(args: List[str] = None) -> int:
     """
-    if len(sys.argv) < 2:
+    Perfect CLI entry point with comprehensive error handling
+    
+    Args:
+        args: Command line arguments (defaults to sys.argv)
+        
+    Returns:
+        int: Exit code (0 for success, 1 for error)
+    """
+    if args is None:
+        args = sys.argv
+    
+    if len(args) < 2:
         print("Usage: python app.py [parse|search|validate] [args]")
         return 1
     
-    command = sys.argv[1]
+    command = args[1]
     
-    if command == "parse":
-        pdf_file = sys.argv[2] if len(sys.argv) > 2 else None
-        result = get_parser_service().execute(pdf_file)
-        return 0 if result['success'] else 1
-    
-    elif command == "search":
-        if len(sys.argv) != 3:
-            print("Usage: python app.py search <query>")
+    try:
+        if command == "parse":
+            pdf_file = args[2] if len(args) > 2 else None
+            service = ParserService()
+            result = service.execute(pdf_file)
+            return 0 if result['success'] else 1
+        
+        elif command == "search":
+            if len(args) != 3:
+                print("Usage: python app.py search <query>")
+                return 1
+            service = SearchService()
+            result = service.execute(args[2])
+            
+            if result['success']:
+                matches = result.get('matches', [])
+                if matches:
+                    print(f"\nFound {len(matches)} results for '{result['query']}':")
+                    print("-" * 60)
+                    for match in matches:
+                        print(f"Section: {match['section_id']}")
+                        print(f"Title: {match['title']}")
+                        print(f"Page: {match['page']}")
+                        print(f"Match Type: {match['match_type']}")
+                        print("-" * 60)
+                    print(f"\nTotal matches found: {len(matches)}")
+                else:
+                    print(f"No results found for '{result['query']}'")
+                return 0
+            else:
+                print(f"Search failed: {result.get('error', 'Unknown error')}")
+                return 1
+        
+        elif command == "validate":
+            # Validation is handled by parse command
+            service = ParserService()
+            result = service.execute()
+            return 0 if result['success'] else 1
+        
+        else:
+            print(f"Unknown command: {command}")
+            print("Available commands: parse, search, validate")
             return 1
-        result = get_search_service().execute(sys.argv[2])
-        return 0 if result['success'] else 1
     
-    elif command == "validate":
-        from validator import generate_validation_reports
-        success = generate_validation_reports()
-        return 0 if success else 1
-    
-    else:
-        print(f"Unknown command: {command}")
-        print("Available commands: parse, search, validate")
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user")
+        return 1
+    except Exception as e:
+        print(f"Unexpected error: {e}")
         return 1
 
 

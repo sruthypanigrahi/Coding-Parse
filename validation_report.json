@@ -1,77 +1,11 @@
 {
   "validation_summary": {
     "total_entries": 1313,
-    "numbered_sections": 1313,
-    "missing_fields": 0,
     "valid_entries": 1313,
-    "coverage_percentage": 100.0
+    "numbered_sections": 1313,
+    "validation_score": 100.0
   },
-  "sample_entries": [
-    {
-      "section_id": "1",
-      "title": "Introduction",
-      "page": 34,
-      "level": 1,
-      "parent_id": null,
-      "full_path": "1 Introduction",
-      "children": [],
-      "metadata": {
-        "raw_title": "1 Introduction",
-        "extracted_at": 1758139001.8967407
-      }
-    },
-    {
-      "section_id": "1.1",
-      "title": "Overview",
-      "page": 34,
-      "level": 2,
-      "parent_id": "1",
-      "full_path": "1.1 Overview",
-      "children": [],
-      "metadata": {
-        "raw_title": "1.1 Overview",
-        "extracted_at": 1758139001.8967407
-      }
-    },
-    {
-      "section_id": "1.2",
-      "title": "Purpose",
-      "page": 35,
-      "level": 2,
-      "parent_id": "1",
-      "full_path": "1.2 Purpose",
-      "children": [],
-      "metadata": {
-        "raw_title": "1.2 Purpose",
-        "extracted_at": 1758139001.8967407
-      }
-    },
-    {
-      "section_id": "1.2.1",
-      "title": "Scope",
-      "page": 36,
-      "level": 3,
-      "parent_id": "1.2",
-      "full_path": "1.2.1 Scope",
-      "children": [],
-      "metadata": {
-        "raw_title": "1.2.1 Scope",
-        "extracted_at": 1758139001.8967407
-      }
-    },
-    {
-      "section_id": "1.3",
-      "title": "Section Overview",
-      "page": 36,
-      "level": 2,
-      "parent_id": "1",
-      "full_path": "1.3 Section Overview",
-      "children": [],
-      "metadata": {
-        "raw_title": "1.3 Section Overview",
-        "extracted_at": 1758139001.8967407
-      }
-    }
-  ],
-  "generated_at": "2025-09-18T20:47:11.059888"
+  "schema_compliance": 1.0,
+  "coverage_percentage": 125.53,
+  "generated_at": "2025-09-20T22:14:28.483335"
 }
