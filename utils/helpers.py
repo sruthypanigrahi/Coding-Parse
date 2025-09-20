@@ -34,16 +34,17 @@ def write_jsonl(data: List[Dict], filename: str) -> bool:
         return False
 
 
-def batch_process(items: List[Any], batch_size: int = 100) -> List[List[Any]]:
-    """Process items in batches with comprehensive input validation"""
+def batch_process(items: List[Any], batch_size: int = 100):
+    """Process items in batches with memory efficiency"""
     # Input validation for security and correctness
     if not isinstance(batch_size, int) or batch_size <= 0:
         raise ValueError("Batch size must be a positive integer")
     if not isinstance(items, list):
         raise TypeError("Items must be a list")
     
-    # Optimized batch processing with list comprehension
-    return [items[i:i + batch_size] for i in range(0, len(items), batch_size)]
+    # Memory-efficient generator for large datasets
+    for i in range(0, len(items), batch_size):
+        yield items[i:i + batch_size]
 
 
 def safe_file_read(filename: str) -> str:
@@ -121,13 +122,14 @@ def format_file_size(size_bytes: int) -> str:
     i = 0
     size = size_bytes
     
-    # Use bit shifting for faster division by 1024
-    while size >= 1024 and i < len(size_names) - 1:
-        size >>= 10  # Equivalent to size //= 1024 but faster
+    # Use division for floating-point precision
+    size_float = float(size)
+    while size_float >= 1024 and i < len(size_names) - 1:
+        size_float /= 1024  # Division for accurate decimal representation
         i += 1
     
     # Use f-string for optimal string formatting
-    return f"{size:.1f} {size_names[i]}" if i > 0 else f"{size} {size_names[i]}"
+    return f"{size_float:.1f} {size_names[i]}"
 
 
 # Perfect utility exports

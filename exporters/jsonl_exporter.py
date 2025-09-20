@@ -20,6 +20,11 @@ class JSONLExporter(BaseExporter):
         """Export TOC structure to JSONL"""
         try:
             safe_path = self._validate_path(filename)
+        except ValueError as e:
+            logger.error(f"Path validation failed: {e}")
+            return False
+        
+        try:
             with open(safe_path, 'w', encoding='utf-8') as f:
                 for entry in entries:
                     data = {
@@ -31,10 +36,10 @@ class JSONLExporter(BaseExporter):
                         'parent_id': entry.parent_id,
                         'full_path': entry.full_path
                     }
-                    f.write(json.dumps(data, ensure_ascii=False) + '\n')
+                    f.write(f"{json.dumps(data, ensure_ascii=False)}\n")
             logger.info(f"Exported {len(entries)} TOC entries to {filename}")
             return True
-        except (OSError, PermissionError, ValueError) as e:
+        except (OSError, PermissionError, TypeError) as e:
             logger.error(f"Failed to export TOC: {e}")
             return False
     
@@ -42,6 +47,11 @@ class JSONLExporter(BaseExporter):
         """Export full content to JSONL"""
         try:
             safe_path = self._validate_path(filename)
+        except ValueError as e:
+            logger.error(f"Path validation failed: {e}")
+            return False
+        
+        try:
             with open(safe_path, 'w', encoding='utf-8') as f:
                 for entry in entries:
                     data = {
@@ -56,9 +66,9 @@ class JSONLExporter(BaseExporter):
                         'images': [img.to_dict() if hasattr(img, 'to_dict') else img for img in entry.images if img],
                         'tables': [tbl.to_dict() if hasattr(tbl, 'to_dict') else tbl for tbl in entry.tables if tbl]
                     }
-                    f.write(json.dumps(data, ensure_ascii=False) + '\n')
+                    f.write(f"{json.dumps(data, ensure_ascii=False)}\n")
             logger.info(f"Exported {len(entries)} content entries to {filename}")
             return True
-        except (OSError, PermissionError, ValueError) as e:
+        except (OSError, PermissionError, TypeError) as e:
             logger.error(f"Failed to export content: {e}")
             return False

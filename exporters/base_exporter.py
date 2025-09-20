@@ -23,7 +23,8 @@ class BaseExporter:
     def _validate_path(self, filename: str) -> Path:
         """Validate path for security - prevent path traversal"""
         # Security: Check for dangerous patterns first
-        if any(dangerous in filename for dangerous in ['..',  '/', '\\', '~']):
+        path_obj = Path(filename)
+        if any(part in ['..', '~'] for part in path_obj.parts):
             raise ValueError(f"Security violation: Invalid filename {filename}")
         
         # Convert to Path and resolve

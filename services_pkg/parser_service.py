@@ -74,16 +74,16 @@ class ParserService(Executable, Subject):
             return result
             
         except ValidationError as e:
-            logger.error(f"Validation failed: {e}")
+            logger.error(f"Validation failed: {type(e).__name__}")
             return {'success': False, 'error': "Invalid input provided"}
         except FileNotFoundError as e:
-            logger.error(f"File not found: {e}")
+            logger.error(f"File not found: {type(e).__name__}")
             return {'success': False, 'error': "Requested file not accessible"}
         except PermissionError as e:
-            logger.error(f"Permission denied: {e}")
+            logger.error(f"Permission denied: {type(e).__name__}")
             return {'success': False, 'error': "Access denied"}
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error: {type(e).__name__}")
             return {'success': False, 'error': "Processing failed due to unexpected error"}
     
     def _resolve_and_validate_path(self, pdf_path: Optional[str]) -> Path:
@@ -93,7 +93,7 @@ class ParserService(Executable, Subject):
             return self._validator.validate_pdf_file(str(default_path))
         
         # Comprehensive security validation
-        if any(dangerous in pdf_path for dangerous in ['..',  '/', '\\', '~']):
+        if any(dangerous in pdf_path for dangerous in ['..', '~']):
             raise ValidationError("Path contains dangerous characters")
         
         if Path(pdf_path).is_absolute():

@@ -16,6 +16,11 @@ class SecurityValidator:
     """Security-focused validation utilities"""
     
     @staticmethod
+    def validate_file_path(file_path: str) -> bool:
+        """Alias for is_safe_path for compatibility"""
+        return SecurityValidator.is_safe_path(file_path)
+    
+    @staticmethod
     def is_safe_path(file_path: str) -> bool:
         """
         Comprehensive path safety validation

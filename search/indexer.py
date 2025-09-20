@@ -27,7 +27,7 @@ class SearchIndexer:
             resolved_path.relative_to(cwd)
             
             # Additional security: check for dangerous path components
-            if any(part in str(toc_file) for part in ['..',  '~', '//', '\\\\']):
+            if any(part in toc_file.parts for part in ['..', '~']):
                 logger.error(f"Dangerous path components detected: {toc_file}")
                 return False
         except ValueError:

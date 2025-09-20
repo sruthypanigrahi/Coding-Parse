@@ -1,5 +1,5 @@
 """Protocol interfaces for duck typing"""
-from typing import Protocol, Any, Optional
+from typing import Protocol, Any, Optional, Union
 
 
 class Readable(Protocol):
@@ -11,6 +11,6 @@ class Readable(Protocol):
 
 class Writable(Protocol):
     """Protocol for writable objects"""
-    def write(self, data: Any) -> Optional[int]:
+    def write(self, data: Union[str, bytes]) -> Optional[int]:
         """Write data and optionally return bytes written"""
         ...

@@ -28,13 +28,18 @@ class ContentExtractor(Extractable):
             return self._extract_sequential(entries)
     
     def _extract_sequential(self, entries: List[TOCEntry]) -> List[ContentEntry]:
-        """Sequential extraction"""
+        """Sequential extraction with error handling"""
         results = []
         for i, entry in enumerate(entries):
             if entry.section_id:
-                result = self._extract_single(entry, entries, i)
-                if result:
-                    results.append(result)
+                try:
+                    result = self._extract_single(entry, entries, i)
+                    if result:
+                        results.append(result)
+                except Exception as e:
+                    self._logger.warning(f"Failed to extract content for {entry.section_id}: {e}")
+                    # Continue processing remaining entries
+                    continue
         return results
     
     def _extract_single(self, entry: TOCEntry, all_entries: List[TOCEntry], index: int) -> Optional[ContentEntry]:
@@ -50,6 +55,9 @@ class ContentExtractor(Extractable):
                 title=entry.title,
                 page_range=f"{start}-{end}", 
                 content=content,
+                # Image and table extraction not implemented in this version
+                # TODO: Add image extraction using processor.get_page_images()
+                # TODO: Add table extraction using processor.get_page_tables()
                 images=[],
                 tables=[]
             )
@@ -72,10 +80,19 @@ class ContentExtractor(Extractable):
     def _extract_text(self, start: int, end: int) -> str:
         """Extract text efficiently"""
         texts = []
-        try:
-            page_count = self.processor.page_count
-        except RuntimeError:
-            page_count = end
+        # Thread-safe page count initialization
+        if not hasattr(self, '_cached_page_count'):
+            import threading
+            if not hasattr(self, '_page_count_lock'):
+                self._page_count_lock = threading.Lock()
+            
+            with self._page_count_lock:
+                if not hasattr(self, '_cached_page_count'):
+                    try:
+                        self._cached_page_count = self.processor.page_count
+                    except RuntimeError:
+                        self._cached_page_count = 1  # Safe fallback
+        page_count = self._cached_page_count
             
         for page_num in range(start - 1, min(end, page_count)):
             text = self._get_page_text(page_num)
@@ -84,10 +101,9 @@ class ContentExtractor(Extractable):
         return self.text_processor.join_page_texts(texts)
     
     def _get_page_text(self, page_num: int) -> str:
-        """Get page text efficiently"""
+        """Get page text efficiently with cached page count"""
         try:
-            page_count = self.processor.page_count
-            if 0 <= page_num < page_count:
+            if 0 <= page_num < self._cached_page_count:
                 text = self.processor.document[page_num].get_text("text")
                 return (text or "").strip()
             return ""

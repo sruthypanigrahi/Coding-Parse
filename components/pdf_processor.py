@@ -30,7 +30,7 @@ class PDFProcessor(Processable):
     def __enter__(self) -> 'PDFProcessor':
         """Enter context manager with error handling"""
         try:
-            if not str(self._file_path).lower().endswith('.pdf'):
+            if self._file_path.suffix.lower() != '.pdf':
                 raise ValueError("Only PDF files are supported")
             
             if not self._file_path.exists():
@@ -48,7 +48,7 @@ class PDFProcessor(Processable):
             self._logger.error(f"PDF processing error: {type(e).__name__}")
             raise ValueError(f"Invalid or corrupted PDF file") from e
     
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Optional[bool]:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Exit context manager with cleanup"""
         if self._doc:
             try:
@@ -58,6 +58,7 @@ class PDFProcessor(Processable):
                 self._logger.warning(f"Error closing PDF: {e}")
             except Exception as e:
                 self._logger.error(f"Unexpected error closing PDF: {e}")
+        return None  # Ensure exceptions are not suppressed
     
     @property
     def document(self) -> fitz.Document:

@@ -25,9 +25,9 @@ class TOCParser(Parseable):
                 self._logger.warning("No TOC found in document")
                 return []
             
-            # Use generator for memory efficiency with large TOCs
-            entries = (self._create_entry(level, title, page) for level, title, page in toc)
-            return self._build_hierarchy(list(entries))
+            # Use list comprehension for better performance
+            entries = [self._create_entry(level, title, page) for level, title, page in toc]
+            return self._build_hierarchy(entries)
             
         except RuntimeError as e:
             self._logger.error(f"Document access failed: {e}")
@@ -55,7 +55,8 @@ class TOCParser(Parseable):
         result, parent_stack = [], []
         
         for entry in entries:
-            if not entry.section_id or not entry.section_id.replace('.', '').isdigit():
+            # Use pre-compiled regex for better performance
+            if not entry.section_id or not self._hierarchy_pattern.match(entry.section_id):
                 continue
             
             try:

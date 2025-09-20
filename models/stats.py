@@ -20,7 +20,7 @@ class ProcessingStats(BaseModel):
     total_tables: int = 0
     processing_time: float = 0.0
     errors: List[str] = field(default_factory=list)
-    _error_set: set = field(default_factory=set, init=False, repr=False)
+    _error_set: set[str] = field(default_factory=set, init=False, repr=False)
     
     def add_error(self, error: str) -> None:
         """Add processing error with validation and XSS protection"""

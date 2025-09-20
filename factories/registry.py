@@ -29,17 +29,17 @@ class ComponentRegistry:
     
     def register(self, name: str, component: Any) -> None:
         """Register a component with thread safety"""
-        with self._lock:
+        with self.__class__._lock:
             self._components[name] = component
     
     def get(self, name: str) -> Optional[Any]:
         """Get a registered component with thread safety"""
-        with self._lock:
+        with self.__class__._lock:
             return self._components.get(name)
     
     def unregister(self, name: str) -> bool:
         """Unregister a component with thread safety"""
-        with self._lock:
+        with self.__class__._lock:
             if name in self._components:
                 del self._components[name]
                 return True
@@ -47,7 +47,7 @@ class ComponentRegistry:
     
     def clear(self) -> None:
         """Clear all registered components with thread safety"""
-        with self._lock:
+        with self.__class__._lock:
             self._components.clear()
 
 
@@ -71,7 +71,7 @@ class DependencyInjector:
             self._singletons[interface] = None
     
     def get(self, interface: Type) -> Any:
-        """Get instance of interface with thread safety"""
+        """Get instance with thread-safe singleton pattern"""
         with self._lock:
             if interface in self._singletons:
                 if self._singletons[interface] is None:
@@ -79,7 +79,7 @@ class DependencyInjector:
                     try:
                         self._singletons[interface] = implementation()
                     except Exception as e:
-                        raise ValueError(f"Failed to instantiate singleton {interface.__name__}: {e}")
+                        raise ValueError(f"Failed to instantiate singleton {interface.__name__}") from e
                 return self._singletons[interface]
             
             if interface in self._bindings:
@@ -87,7 +87,7 @@ class DependencyInjector:
                 try:
                     return implementation()
                 except Exception as e:
-                    raise ValueError(f"Failed to instantiate {interface.__name__}: {e}")
+                    raise ValueError(f"Failed to instantiate {interface.__name__}") from e
             
             raise ValueError(f"No binding found for {interface}")
     
@@ -95,5 +95,5 @@ class DependencyInjector:
         """Create instance with dependency injection and error handling"""
         try:
             return cls(**kwargs)
-        except Exception as e:
-            raise ValueError(f"Failed to create instance of {cls.__name__}: {e}")
+        except (TypeError, AttributeError) as e:
+            raise ValueError(f"Failed to create instance of {cls.__name__}") from e

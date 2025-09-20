@@ -51,32 +51,34 @@ class ConfigurationManager:
         }
     
     def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value"""
-        keys = key.split('.')
-        value = self._config
-        
-        for k in keys:
-            if isinstance(value, dict) and k in value:
-                value = value[k]
-            else:
-                return default
-        
-        return value
+        """Get configuration value with thread safety"""
+        with self._lock:
+            keys = key.split('.')
+            value = self._config
+            
+            for k in keys:
+                if isinstance(value, dict) and k in value:
+                    value = value[k]
+                else:
+                    return default
+            
+            return value
     
     def set(self, key: str, value: Any) -> None:
-        """Set configuration value"""
-        keys = key.split('.')
-        config = self._config
-        
-        for k in keys[:-1]:
-            if k not in config:
-                config[k] = {}
-            elif not isinstance(config[k], dict):
-                # Overwrite non-dict values with empty dict
-                config[k] = {}
-            config = config[k]
-        
-        config[keys[-1]] = value
+        """Set configuration value with thread safety"""
+        with self._lock:
+            keys = key.split('.')
+            config = self._config
+            
+            for k in keys[:-1]:
+                if k not in config:
+                    config[k] = {}
+                elif not isinstance(config[k], dict):
+                    # Overwrite non-dict values with empty dict
+                    config[k] = {}
+                config = config[k]
+            
+            config[keys[-1]] = value
     
     def load_from_file(self, file_path: str) -> bool:
         """Load configuration from file with path validation"""
@@ -95,7 +97,8 @@ class ConfigurationManager:
             with open(safe_path, 'r', encoding='utf-8') as f:
                 file_config = yaml.safe_load(f)
                 if isinstance(file_config, dict):
-                    self._config.update(file_config)
+                    with self._lock:
+                        self._config.update(file_config)
                 else:
                     logger.error("Configuration file must contain a dictionary")
                     return False

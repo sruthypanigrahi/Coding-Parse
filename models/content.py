@@ -77,8 +77,10 @@ class ImageInfo(BaseModel):
         return f"{self.width}x{self.height}"
     
     def get_aspect_ratio(self) -> float:
-        """Calculate aspect ratio"""
-        return self.width / self.height if self.height > 0 else 0.0
+        """Calculate aspect ratio with comprehensive validation"""
+        if self.height > 0 and self.width > 0:
+            return self.width / self.height
+        return 0.0  # Invalid dimensions
 
 
 @dataclass

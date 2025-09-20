@@ -106,12 +106,20 @@ class ApplicationContext:
         self._injector.bind_singleton(InputValidator, InputValidator)
     
     def get_processor_factory(self) -> ProcessorFactory:
-        """Get processor factory"""
-        return self._injector.get(ProcessorFactory)
+        """Get processor factory with error handling"""
+        try:
+            return self._injector.get(ProcessorFactory)
+        except Exception as e:
+            logger.error(f"Failed to get processor factory: {e}")
+            return StandardProcessorFactory()
     
     def get_service_factory(self) -> ServiceFactory:
-        """Get service factory"""
-        return self._injector.get(ServiceFactory)
+        """Get service factory with error handling"""
+        try:
+            return self._injector.get(ServiceFactory)
+        except Exception as e:
+            logger.error(f"Failed to get service factory: {e}")
+            return StandardServiceFactory()
     
     def get_validator(self) -> InputValidator:
         """Get input validator"""
@@ -129,6 +137,6 @@ class ApplicationContext:
         """Get configuration value with error handling"""
         try:
             return self._config.get(key, default)
-        except Exception as e:
+        except (KeyError, AttributeError, TypeError) as e:
             logger.warning(f"Configuration access failed for key '{key}': {e}")
             return default

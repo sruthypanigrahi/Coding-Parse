@@ -38,3 +38,14 @@
 2025-09-21 02:13:05,760 - SearchService - INFO - Search for 'USB' returned 565 results
 2025-09-21 02:27:34,836 - search.indexer - INFO - Built search index with 1313 entries
 2025-09-21 02:27:34,837 - SearchService - ERROR - Search failed: type object 'SecurityValidator' has no attribute 'validate_file_path'
+2025-09-21 03:06:46,763 - search.indexer - INFO - Built search index with 1313 entries
+2025-09-21 03:06:46,765 - SearchService - ERROR - Search failed: type object 'SecurityValidator' has no attribute 'validate_file_path'
+2025-09-21 03:07:06,827 - search.indexer - INFO - Built search index with 1313 entries
+2025-09-21 03:07:06,836 - search.query_processor - ERROR - Security violation: Invalid file path C:\Users\omesh\OneDrive\Documents\coding parse\usb_pd_spec.jsonl
+2025-09-21 03:07:06,836 - SearchService - INFO - Search for 'USB' returned 29 results
+2025-09-21 03:16:24,294 - search.indexer - INFO - Built search index with 1313 entries
+2025-09-21 03:16:24,295 - search.query_processor - ERROR - Security violation: Invalid file path C:\Users\omesh\OneDrive\Documents\coding parse\usb_pd_spec.jsonl
+2025-09-21 03:16:24,295 - SearchService - INFO - Search for 'USB' returned 29 results
+2025-09-21 03:28:56,706 - search.indexer - INFO - Built search index with 1313 entries
+2025-09-21 03:28:56,707 - search.query_processor - ERROR - Security violation: Invalid file path C:\Users\omesh\OneDrive\Documents\coding parse\usb_pd_spec.jsonl
+2025-09-21 03:28:56,707 - SearchService - INFO - Search for 'USB' returned 29 results

@@ -38,9 +38,10 @@ class TOCEntry(BaseModel):
         self.doc_title = html.escape(self.doc_title) if self.doc_title else ""
         self.title = html.escape(self.title) if self.title else ""
         
-        # Generate full path using already escaped values
+        # Generate full path with XSS prevention
         if not self.full_path:
-            self.full_path = f"{self.section_id} {self.title}" if self.section_id else self.title
+            escaped_section_id = html.escape(self.section_id) if self.section_id else ""
+            self.full_path = f"{escaped_section_id} {self.title}" if escaped_section_id else self.title
     
     def is_valid_section_id(self) -> bool:
         """Validate section ID format"""

@@ -62,7 +62,12 @@ class ErrorStateHandler(StateHandler):
     """Handler for error state"""
     
     def handle(self, context: 'StateContext') -> ProcessingStateEnum:
-        logger.error("Processing error state - transitioning to IDLE")
+        # Access error details from context for recovery
+        error_details = getattr(context, 'error_details', None)
+        if error_details:
+            logger.error(f"Processing error: {error_details} - transitioning to IDLE")
+        else:
+            logger.error("Processing error state - transitioning to IDLE")
         return ProcessingStateEnum.IDLE
 
 
@@ -89,11 +94,12 @@ class StateContext:
                     self._current_state = new_state
                 else:
                     logger.error(f"Invalid state returned: {new_state}")
+                    self._current_state = ProcessingStateEnum.ERROR
             except Exception as e:
                 logger.error(f"State transition failed: {type(e).__name__}: {e}")
                 self._current_state = ProcessingStateEnum.ERROR
         else:
-            logger.warning(f"No handler found for state: {self._current_state}")
+            logger.warning("No handler found for current state")
     
     @property
     def state(self) -> ProcessingStateEnum:

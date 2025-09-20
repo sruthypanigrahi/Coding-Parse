@@ -19,7 +19,10 @@ class FileFinder:
             
             if toc_path.exists() and toc_path.is_file():
                 return toc_path
-        except (OSError, ValueError):
+        except ValueError:
+            logger.warning(f"Path traversal attempt detected: {filename}")
+            return None
+        except OSError:
             pass
         
         logger.warning(f"TOC file not found: {filename}")
@@ -35,7 +38,11 @@ class FileFinder:
             
             if content_file.exists() and content_file.is_file():
                 return content_file
-        except (OSError, ValueError):
+        except ValueError:
+            logger.warning(f"Path traversal attempt detected: {filename}")
+            return None
+        except OSError:
             pass
         
+        logger.warning(f"Content file not found: {filename}")
         return None
