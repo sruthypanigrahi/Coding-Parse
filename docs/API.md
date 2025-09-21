@@ -1,50 +1,67 @@
 # API Documentation
 
-## Core Classes
+## Core Services
 
 ### ParserService
-Main service for PDF parsing operations.
+Main service for PDF parsing with security and performance optimization.
+
+```python
+from src.core import ParserService
+
+parser = ParserService()
+result = parser.parse_pdf("document.pdf")
+```
 
 **Methods:**
-- `execute(pdf_path: Optional[str] = None) -> Dict[str, Any]`
-  - Parses PDF and generates all required output files
-  - Returns: Success/failure status with metrics
+- `parse_pdf(pdf_path: str) -> Dict`: Parse PDF and export to JSONL files
 
-### SearchService  
-Service for searching parsed content.
+### SearchService
+Search functionality with input validation and efficient indexing.
 
-**Methods:**
-- `execute(query: str) -> Dict[str, Any]`
-  - Searches TOC and content for query terms
-  - Returns: Search results with match types
+```python
+from src.core import SearchService
 
-### FileExporter
-Handles export of all output formats.
+searcher = SearchService()
+results = searcher.search("USB power")
+```
 
 **Methods:**
-- `export_toc(entries, filename) -> bool`
-- `export_content(entries, filename) -> bool` 
-- `export_validation_excel(entries, filename) -> bool`
-- `export_validation_json(entries, filename) -> bool`
+- `search(query: str) -> Dict`: Search parsed content with validation
 
 ## Data Models
 
 ### TOCEntry
-Represents table of contents entry.
+Table of contents entry with validation.
 
 **Fields:**
 - `doc_title: str` - Document title
 - `section_id: str` - Section identifier
 - `title: str` - Section title
 - `page: int` - Page number
-- `level: int` - Nesting level
+- `level: int` - Heading level
 
 ### ContentEntry
-Represents extracted content.
+Content entry with comprehensive validation.
 
 **Fields:**
 - `doc_title: str` - Document title
 - `section_id: str` - Section identifier
-- `content: str` - Extracted text content
-- `images: List[ImageInfo]` - Associated images
-- `tables: List[TableInfo]` - Associated tables
+- `title: str` - Section title
+- `page_range: str` - Page range
+- `content: str` - Text content
+
+## Security
+
+### SecurePathValidator
+Comprehensive path validation preventing CWE-22 vulnerabilities.
+
+```python
+from src.utils import SecurePathValidator
+
+validator = SecurePathValidator()
+safe_path = validator.validate_and_resolve("filename.pdf")
+```
+
+**Methods:**
+- `validate_and_resolve(filename) -> Path`: Validate and resolve secure path
+- `validate_file_access(filepath) -> Path`: Validate file exists and is accessible

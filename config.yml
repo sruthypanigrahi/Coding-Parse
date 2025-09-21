@@ -1,0 +1,37 @@
+# USB Power Delivery PDF Parser Configuration
+
+# Parser Settings
+parser:
+  # Maximum pages to process (null = all pages)
+  max_pages: null
+  
+  # Maximum text length per page (characters)
+  max_text_length: 300
+  
+  # Document title for output
+  doc_title: "USB PD"
+
+# Search Settings
+search:
+  # Maximum search results to return
+  max_results: 10
+  
+  # Minimum query length
+  min_query_length: 2
+
+# File Settings
+files:
+  # Default PDF file path
+  default_pdf: "assets/USB_PD_R3_2 V1.1 2024-10.pdf"
+  
+  # Output file names
+  toc_output: "usb_pd_toc.jsonl"
+  content_output: "usb_pd_spec.jsonl"
+
+# Performance Settings
+performance:
+  # Enable parallel processing for exports
+  parallel_export: true
+  
+  # File encoding
+  encoding: "utf-8"
