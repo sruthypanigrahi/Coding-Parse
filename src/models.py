@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class TOCEntry:
+    """Table of Contents entry with hierarchical structure."""
     doc_title: str
     section_id: str
     title: str
@@ -19,6 +20,7 @@ class TOCEntry:
 
 @dataclass
 class ContentEntry:
+    """Content entry with text and image count per page."""
     doc_title: str
     page: int
     content: str

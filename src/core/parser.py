@@ -6,6 +6,8 @@ from ..utils import SecurePathValidator
 from ..config import config
 
 class ParserService:
+    """PDF parsing service with image counting and security."""
+    
     def __init__(self):
         self.validator = SecurePathValidator()
         self.max_pages = config.parser.get('max_pages')
@@ -13,6 +15,7 @@ class ParserService:
         self.doc_title = config.parser.get('doc_title', 'USB PD')
     
     def parse_pdf(self, pdf_path):
+        """Parse PDF extracting TOC, content, and image statistics."""
         try:
             safe_path = self.validator.validate_and_resolve(pdf_path)
             doc = fitz.open(str(safe_path))
@@ -35,6 +38,7 @@ class ParserService:
             return {'success': False, 'error': f'{type(e).__name__}'}
     
     def _extract_toc(self, doc):
+        """Extract table of contents from PDF document."""
         toc_data = []
         for level, title, page in doc.get_toc():
             entry = TOCEntry(self.doc_title, f"{len(toc_data) + 1}.0", title.strip(), page, level)
@@ -42,6 +46,7 @@ class ParserService:
         return toc_data
     
     def _extract_content(self, doc):
+        """Extract content and count images from PDF pages."""
         content_data = []
         pages_to_process = len(doc) if self.max_pages is None else min(self.max_pages, len(doc))
         

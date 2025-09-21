@@ -2,11 +2,14 @@ import os
 from pathlib import Path
 
 class SecurePathValidator:
+    """Secure path validator preventing CWE-22 path traversal attacks."""
+    
     def __init__(self):
         self._base_dir = Path.cwd().resolve()
         self._assets_dir = self._base_dir / 'assets'
     
     def validate_and_resolve(self, filename):
+        """Validate filename and resolve to secure path within allowed directories."""
         if not filename:
             raise ValueError("Empty filename")
         

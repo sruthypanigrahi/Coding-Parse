@@ -3,6 +3,7 @@ from .utils import SecurePathValidator
 from .config import config
 
 def handle_parse(pdf_file=None):
+    """Parse PDF file and display statistics including image count."""
     try:
         pdf_file = pdf_file or config.files['default_pdf']
         print(f"Parsing: {pdf_file}")
@@ -28,6 +29,7 @@ def handle_parse(pdf_file=None):
         return 1
 
 def handle_search(query):
+    """Search through parsed content with unlimited results."""
     try:
         print(f"Searching for: '{query}'")
         result = SearchService().search(query)
@@ -55,6 +57,7 @@ def handle_search(query):
         return 1
 
 def handle_validate():
+    """Validate that required output files exist."""
     try:
         validator = SecurePathValidator()
         missing = []

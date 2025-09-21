@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 class Config:
-    """Configuration manager with YAML support"""
+    """Configuration manager with YAML support and intelligent defaults."""
     
     def __init__(self, config_path: str = "config.yml"):
         self.config_path = Path(config_path)
