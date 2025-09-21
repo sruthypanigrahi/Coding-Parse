@@ -22,10 +22,12 @@ class ContentEntry:
     doc_title: str
     page: int
     content: str
+    image_count: int = 0
     
     def to_dict(self):
         return {
             'doc_title': self.doc_title,
             'page': self.page,
-            'content': self.content
+            'content': self.content,
+            'image_count': self.image_count
         }

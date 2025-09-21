@@ -31,7 +31,7 @@ class Config:
                 'doc_title': 'USB PD'
             },
             'search': {
-                'max_results': 10,
+                'max_results': None,
                 'min_query_length': 2
             },
             'files': {

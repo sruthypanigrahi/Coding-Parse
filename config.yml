@@ -13,8 +13,8 @@ parser:
 
 # Search Settings
 search:
-  # Maximum search results to return
-  max_results: 10
+  # Maximum search results to return (null = all results)
+  max_results: null
   
   # Minimum query length
   min_query_length: 2
