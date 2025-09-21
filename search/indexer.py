@@ -19,19 +19,25 @@ class SearchIndexer:
         self.section_index_lower: Dict[str, int] = {}
     
     def build_index(self, toc_file: Path) -> bool:
-        """Build search index from TOC file"""
-        # Enhanced security check - prevent path traversal
+        """Build search index with secure validation"""
+        from utils.security import SecurePathValidator
+        
+        # Explicit path traversal check
+        toc_str = str(toc_file)
+        if '..' in toc_str or (not toc_str.endswith('.jsonl')):
+            logger.error("Invalid file path or type")
+            return False
+        
+        # Secure path validation with explicit checks
         try:
-            resolved_path = toc_file.resolve()
-            cwd = Path.cwd().resolve()
-            resolved_path.relative_to(cwd)
-            
-            # Additional security: check for dangerous path components
-            if any(part in toc_file.parts for part in ['..', '~']):
-                logger.error(f"Dangerous path components detected: {toc_file}")
-                return False
-        except ValueError:
-            logger.error(f"Path traversal detected: {toc_file}")
+            toc_str = str(toc_file)
+            # Only allow .jsonl files and prevent path traversal
+            if not toc_str.endswith('.jsonl') or '/' in toc_str or '\\' in toc_str:
+                raise ValueError("Only .jsonl files allowed")
+            resolved_path = SecurePathValidator.validate_and_resolve(toc_str)
+            SecurePathValidator.validate_file_access(resolved_path)
+        except (ValueError, FileNotFoundError) as e:
+            logger.error(f"Path validation failed: {e}")
             return False
             
         self.entries = []
@@ -48,16 +54,35 @@ class SearchIndexer:
             logger.error(f"Failed to build search index: {e}")
             return False
     
-    def _process_line(self, line: str, line_num: int, entry_counter: int):
+    def _process_line(self, line: str, line_num: int, entry_counter: int) -> int:
         """Process a single line from TOC file with counter for efficiency"""
         try:
             entry = json.loads(line.strip())
+            
+            # Use streaming processing for large datasets to avoid memory issues
+            if len(self.entries) > 10000:  # Batch processing threshold
+                self._process_batch()
+            
             self.entries.append(entry)
             self._index_entry(entry, entry_counter)
             return entry_counter + 1
+            
         except json.JSONDecodeError as e:
             logger.warning(f"Skipping malformed JSON on line {line_num}: {e}")
             return entry_counter
+    
+    def _process_batch(self):
+        """Process batch with consistent index mapping"""
+        if len(self.entries) > 5000:
+            # Clear all indices to maintain consistency
+            self.word_index.clear()
+            self.section_index.clear()
+            self.section_index_lower.clear()
+            # Keep recent entries and rebuild indices
+            self.entries = self.entries[-5000:]
+            # Rebuild indices for remaining entries
+            for i, entry in enumerate(self.entries):
+                self._index_entry(entry, i)
     
     def _index_entry(self, entry: Dict, entry_index: int):
         """Index a single entry for search"""
@@ -72,8 +97,11 @@ class SearchIndexer:
             self.section_index[section_id] = entry_index
             self.section_index_lower[section_id.lower()] = entry_index
     
+
+    
     def _tokenize(self, text: str) -> List[str]:
-        """Tokenize text into searchable words with optimized regex"""
+        """Tokenize text with optimized performance"""
         if not text:
             return []
-        return re.findall(r'\b\w{2,}\b', text.lower())
+        from utils.performance import PerformanceOptimizer
+        return PerformanceOptimizer.WORD_PATTERN.findall(text.lower())

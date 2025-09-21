@@ -53,7 +53,7 @@ class PathValidator:
             try:
                 file_path.parent.mkdir(parents=True, exist_ok=True)
             except (OSError, PermissionError) as e:
-                raise ValidationError(f"Cannot create output directory", "DIRECTORY_CREATION_FAILED")
+                raise ValidationError(f"Cannot create output directory: {str(e)}", "DIRECTORY_CREATION_FAILED")
             
             # Check write permissions
             if file_path.exists() and not os.access(file_path, os.W_OK):
@@ -65,7 +65,7 @@ class PathValidator:
             return file_path
             
         except (OSError, ValueError) as e:
-            raise ValidationError(f"Output path validation failed", "PATH_ERROR")
+            raise ValidationError(f"Output path validation failed: {str(e)}", "PATH_ERROR")
     
     @staticmethod
     def validate_page_number(page: int, max_pages: int) -> int:

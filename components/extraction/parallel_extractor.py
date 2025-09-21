@@ -17,8 +17,8 @@ class ParallelExtractor:
         """Parallel extraction with error handling"""
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_to_index = {
-                executor.submit(self.extract_func, entries[i], entries, i): i 
-                for i in range(len(entries))
+                executor.submit(self.extract_func, entry, entries, i): i 
+                for i, entry in enumerate(entries)
             }
             ordered_results = [None] * len(entries)
             

@@ -21,24 +21,43 @@ class BaseExporter:
         self._numeric_pattern = re.compile(r'^\d+(\.\d+)*$')
     
     def _validate_path(self, filename: str) -> Path:
-        """Validate path for security - prevent path traversal"""
-        # Security: Check for dangerous patterns first
-        path_obj = Path(filename)
-        if any(part in ['..', '~'] for part in path_obj.parts):
-            raise ValueError(f"Security violation: Invalid filename {filename}")
+        """Secure path validation preventing all path traversal attacks"""
+        import os
         
-        # Convert to Path and resolve
-        path = Path(filename)
+        # Input sanitization
+        if not filename or not isinstance(filename, str):
+            raise ValueError("Invalid filename")
+        
+        # Explicit path traversal checks
+        if '..' in filename or '/' in filename or '\\' in filename:
+            raise ValueError("Path traversal attempts not allowed")
+        
+        # Remove null bytes and normalize
+        clean_name = filename.replace('\x00', '').strip()
+        if not clean_name:
+            raise ValueError("Empty filename after sanitization")
+        
+        # Create path and resolve to canonical form
+        path = Path(clean_name)
         if path.is_absolute():
-            raise ValueError(f"Absolute paths not allowed: {filename}")
+            raise ValueError("Absolute paths not allowed")
         
-        # Resolve and validate against working directory
-        safe_path = path.resolve()
-        cwd = Path.cwd().resolve()
+        # Additional validation for filename components
+        if path.name in ('.', '..') or not path.name or '/' in str(path) or '\\' in str(path):
+            raise ValueError("Invalid filename")
+        
+        # Resolve to canonical path
         try:
-            safe_path.relative_to(cwd)
-        except ValueError:
-            raise ValueError(f"Path traversal detected: {filename}")
+            resolved_path = path.resolve(strict=False)
+            cwd = Path.cwd().resolve()
+            
+            # Use os.path.commonpath for robust path traversal detection
+            common = os.path.commonpath([str(resolved_path), str(cwd)])
+            if Path(common).resolve() != cwd:
+                raise ValueError("Path traversal attempt detected")
+                
+        except (OSError, ValueError) as e:
+            raise ValueError(f"Invalid path: {e}")
         
         return path
     

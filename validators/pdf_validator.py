@@ -78,4 +78,30 @@ class PDFValidator:
             return file_path
             
         except (OSError, ValueError) as e:
-            raise ValidationError(f"Path validation failed", "PATH_ERROR")
+            raise ValidationError(f"Path validation failed: {str(e)}", "PATH_ERROR")
+    
+    @staticmethod
+    def validate_page_number(page: int, max_pages: int) -> int:
+        """
+        Validate page number for PDF context
+        
+        Args:
+            page: Page number to validate
+            max_pages: Maximum allowed page number
+            
+        Returns:
+            int: Validated page number
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if not isinstance(page, int):
+            raise ValidationError("Page number must be an integer", "INVALID_TYPE")
+        
+        if page < 1:
+            raise ValidationError("Page number must be positive", "INVALID_PAGE")
+        
+        if page > max_pages:
+            raise ValidationError(f"Page number exceeds PDF page count ({max_pages})", "PAGE_OUT_OF_RANGE")
+        
+        return page

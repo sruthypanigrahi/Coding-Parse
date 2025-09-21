@@ -60,8 +60,14 @@ class ModuleLoader:
             }
             
             return class_map.get(class_key)
-        except Exception as e:
-            logger.error(f"Failed to load {class_name} from {module_name}: {e}")
+        except ImportError as e:
+            logger.error(f"Module import failed for {module_name}: {str(e)}")
+            return None
+        except AttributeError as e:
+            logger.error(f"Class {class_name} not found in {module_name}: {str(e)}")
+            return None
+        except KeyError as e:
+            logger.error(f"Class key not found: {str(e)}")
             return None
     
     @staticmethod
@@ -85,8 +91,8 @@ class ModuleLoader:
             else:
                 logger.error(f"Failed to load factory class: {class_name}")
                 return None
-        except Exception as e:
-            logger.error(f"Custom factory creation failed: {type(e).__name__}: {e}")
+        except (KeyError, TypeError, AttributeError) as e:
+            logger.error(f"Custom factory creation failed: {type(e).__name__}")
             return None
 
 
@@ -122,8 +128,12 @@ class ApplicationContext:
             return StandardServiceFactory()
     
     def get_validator(self) -> InputValidator:
-        """Get input validator"""
-        return self._injector.get(InputValidator)
+        """Get input validator with error handling"""
+        try:
+            return self._injector.get(InputValidator)
+        except Exception as e:
+            logger.error(f"Failed to get validator: {type(e).__name__}")
+            return InputValidator()
     
     def configure_from_file(self, config_file: str) -> bool:
         """Configure application from file with error handling"""
@@ -137,6 +147,6 @@ class ApplicationContext:
         """Get configuration value with error handling"""
         try:
             return self._config.get(key, default)
-        except (KeyError, AttributeError, TypeError) as e:
-            logger.warning(f"Configuration access failed for key '{key}': {e}")
+        except (AttributeError, TypeError) as e:
+            logger.warning(f"Configuration access failed for key '{key}': {type(e).__name__}")
             return default

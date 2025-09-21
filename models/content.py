@@ -29,8 +29,9 @@ class ContentEntry(BaseModel):
     def __post_init__(self):
         """Initialize computed fields efficiently with security"""
         if self.content:
-            # Memory-efficient word counting using regex
-            self.word_count = len(re.findall(r'\S+', self.content))
+            # Efficient word counting using performance optimizer
+            from utils.performance import PerformanceOptimizer
+            self.word_count = PerformanceOptimizer.efficient_word_count(self.content)
             self.has_content = bool(self.content.strip())
         else:
             self.word_count = 0
@@ -61,11 +62,17 @@ class ImageInfo(BaseModel):
     
     def __post_init__(self):
         """Validate image metadata"""
-        # Ensure positive values
-        self.page = max(1, self.page)
-        self.index = max(1, self.index)
-        self.width = max(0, self.width)
-        self.height = max(0, self.height)
+        # Conditional validation for better performance
+        if self.page < 1:
+            self.page = 1
+        if self.index < 1:
+            self.index = 1
+        if self.xref < 0:
+            self.xref = 0
+        if self.width < 0:
+            self.width = 0
+        if self.height < 0:
+            self.height = 0
         
         # Sanitize string fields
         self.colorspace = html.escape(self.colorspace) if self.colorspace else "Unknown"
@@ -95,11 +102,15 @@ class TableInfo(BaseModel):
     
     def __post_init__(self):
         """Initialize headers with bounds checking and sanitization"""
-        # Validate numeric fields
-        self.page = max(1, self.page)
-        self.index = max(1, self.index)
-        self.rows = max(0, self.rows)
-        self.cols = max(0, self.cols)
+        # Conditional validation for better performance
+        if self.page < 1:
+            self.page = 1
+        if self.index < 1:
+            self.index = 1
+        if self.rows < 0:
+            self.rows = 0
+        if self.cols < 0:
+            self.cols = 0
         
         # Sanitize table data
         if self.data:
@@ -109,7 +120,7 @@ class TableInfo(BaseModel):
             ]
             
             # Set headers from first row if not provided and data exists
-            if not self.headers and self.data and len(self.data) > 0:
+            if not self.headers and self.data:
                 self.headers = self.data[0]
         
         # Sanitize headers

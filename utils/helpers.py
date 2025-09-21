@@ -6,28 +6,25 @@ from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
+def _validate_path_traversal(filename: str) -> None:
+    """Centralized path traversal validation to reduce duplication"""
+    if '..' in filename or '/' in filename or '\\' in filename or filename in ('.', '..'):
+        raise ValueError("Path traversal attempts not allowed")
+
 
 def write_jsonl(data: List[Dict], filename: str) -> bool:
-    """Write data to JSONL file with optimized memory usage and security validation"""
+    """Write data to JSONL file with secure validation"""
+    from .security import SecurePathValidator
+    
     try:
-        # Security validation for path traversal
-        if '..' in filename or filename.startswith(('/', '\\')):
-            logger.error("Security violation: Invalid filename detected")
-            return False
+        # Secure path validation (includes path traversal checks)
+        resolved_path = SecurePathValidator.validate_and_resolve(filename)
         
-        safe_path = Path(filename).resolve()
-        
-        # Ensure path is within current working directory
-        cwd = Path.cwd().resolve()
-        if not str(safe_path).startswith(str(cwd)):
-            logger.error(f"Security violation: Path outside working directory")
-            return False
-        
-        # Optimized string building with buffer for better performance
-        with open(safe_path, 'w', encoding='utf-8', buffering=8192) as f:
-            # Use generator expression for memory efficiency with large datasets
-            json_lines = (json.dumps(item, ensure_ascii=False, separators=(',', ':')) + '\n' for item in data)
-            f.writelines(json_lines)
+        # Optimized direct writing for better performance
+        with open(resolved_path, 'w', encoding='utf-8') as f:
+            # Direct iteration avoids memory overhead of generator with join
+            for item in data:
+                f.write(json.dumps(item, ensure_ascii=False, separators=(',', ':')) + '\n')
         return True
     except (OSError, PermissionError, ValueError) as e:
         logger.error(f"Failed to write JSONL: {e}")
@@ -39,36 +36,33 @@ def batch_process(items: List[Any], batch_size: int = 100):
     # Input validation for security and correctness
     if not isinstance(batch_size, int) or batch_size <= 0:
         raise ValueError("Batch size must be a positive integer")
-    if not isinstance(items, list):
-        raise TypeError("Items must be a list")
+    if not hasattr(items, '__iter__'):
+        raise TypeError("Items must be iterable")
     
-    # Memory-efficient generator for large datasets
-    for i in range(0, len(items), batch_size):
-        yield items[i:i + batch_size]
+    # Avoid len() call for iterables that don't support efficient length calculation
+    if hasattr(items, '__len__'):
+        for i in range(0, len(items), batch_size):
+            yield items[i:i + batch_size]
+    else:
+        # Use iterator approach for generators and custom iterables
+        iterator = iter(items)
+        while True:
+            batch = list(__import__('itertools').islice(iterator, batch_size))
+            if not batch:
+                break
+            yield batch
 
 
 def safe_file_read(filename: str) -> str:
-    """Safely read file with security validation"""
+    """Safely read file with secure validation"""
+    from .security import SecurePathValidator
+    
     try:
-        # Security validation
-        if '..' in filename or filename.startswith(('/', '\\')):
-            raise ValueError("Invalid filename detected")
+        # Secure path validation and file access check (includes path traversal checks)
+        resolved_path = SecurePathValidator.validate_and_resolve(filename)
+        SecurePathValidator.validate_file_access(resolved_path)
         
-        safe_path = Path(filename).resolve()
-        
-        # Ensure path is within current working directory
-        cwd = Path.cwd().resolve()
-        if not str(safe_path).startswith(str(cwd)):
-            raise ValueError("File must be within current directory")
-        
-        # Ensure file exists and is readable
-        if not safe_path.exists():
-            raise FileNotFoundError(f"File not found: {filename}")
-        
-        if not safe_path.is_file():
-            raise ValueError(f"Path is not a file: {filename}")
-        
-        with open(safe_path, 'r', encoding='utf-8') as f:
+        with open(resolved_path, 'r', encoding='utf-8') as f:
             return f.read()
             
     except (OSError, PermissionError, UnicodeDecodeError) as e:
@@ -85,22 +79,16 @@ def validate_json_structure(data: Dict[str, Any], required_fields: List[str]) ->
 
 
 def calculate_file_hash(filename: str) -> str:
-    """Calculate SHA-256 hash of file for integrity checking"""
+    """Calculate SHA-256 hash with secure validation"""
     import hashlib
+    from .security import SecurePathValidator
     
     try:
-        # Add security validation consistent with other file operations
-        if '..' in filename or filename.startswith(('/', '\\')):
-            raise ValueError("Security violation: Invalid filename detected")
+        # Secure path validation and file access check (includes path traversal checks)
+        resolved_path = SecurePathValidator.validate_and_resolve(filename)
+        SecurePathValidator.validate_file_access(resolved_path)
         
-        safe_path = Path(filename).resolve()
-        
-        # Ensure path is within current working directory
-        cwd = Path.cwd().resolve()
-        if not str(safe_path).startswith(str(cwd)):
-            raise ValueError("File must be within current directory")
-        
-        with open(safe_path, 'rb') as f:
+        with open(resolved_path, 'rb') as f:
             file_hash = hashlib.sha256()
             for chunk in iter(lambda: f.read(4096), b""):
                 file_hash.update(chunk)
@@ -120,10 +108,9 @@ def format_file_size(size_bytes: int) -> str:
     # Optimized with tuple and bit shifting for better performance
     size_names = ("B", "KB", "MB", "GB", "TB")
     i = 0
-    size = size_bytes
     
     # Use division for floating-point precision
-    size_float = float(size)
+    size_float = float(size_bytes)
     while size_float >= 1024 and i < len(size_names) - 1:
         size_float /= 1024  # Division for accurate decimal representation
         i += 1

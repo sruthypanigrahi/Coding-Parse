@@ -20,12 +20,37 @@ class ReportExporter(BaseExporter):
     
     def __init__(self):
         super().__init__()
-        # Ensure _numeric_pattern is available from parent
+        import re
+        self._numeric_pattern = re.compile(r'^\d+(?:\.\d+)*$')
+    
+    def _calculate_validation_stats(self, toc_entries: List[TOCEntry]) -> dict:
+        """Calculate validation statistics efficiently"""
+        from utils.performance import PerformanceOptimizer
+        
+        total_sections = len(toc_entries)
+        unique_pages = len(set(entry.page for entry in toc_entries if entry.page > 0))
+        numeric_sections = sum(1 for entry in toc_entries if PerformanceOptimizer.is_numeric_section(entry.section_id or ''))
+        
+        return {
+            'total_sections': total_sections,
+            'unique_pages': unique_pages,
+            'numeric_sections': numeric_sections,
+            'coverage_percentage': round((unique_pages / TOTAL_EXPECTED_PAGES) * 100, 2) if TOTAL_EXPECTED_PAGES > 0 else 0.0
+        }
     
     def export_validation_excel(self, toc_entries: List[TOCEntry], filename: str = "validation_report.xlsx") -> bool:
         """Export Excel validation report with comprehensive metrics"""
         try:
-            safe_path = self._validate_path(filename)
+            # Secure path validation - resolve and validate within working directory
+            from pathlib import Path
+            safe_path = Path(filename).resolve()
+            cwd = Path.cwd().resolve()
+            try:
+                safe_path.relative_to(cwd)
+            except ValueError:
+                logger.error(f"Path outside working directory: {filename}")
+                return False
+            safe_filename = safe_path
             
             # Build validation data
             data = []
@@ -48,16 +73,17 @@ class ReportExporter(BaseExporter):
             
             df = pd.DataFrame(data)
             
-            # Calculate summary metrics
+            # Calculate summary metrics using validation stats
+            stats = self._calculate_validation_stats(toc_entries)
             summary = {
-                'Total Entries': len(df),
+                'Total Entries': stats['total_sections'],
                 'Valid Entries': df[['has_section_id', 'valid_page']].all(axis=1).sum(),
-                'Numbered Sections': df['is_numbered'].sum(),
-                'Coverage %': round((len(df) / TOTAL_EXPECTED_PAGES) * 100, 2) if TOTAL_EXPECTED_PAGES > 0 else 0.0
+                'Numbered Sections': stats['numeric_sections'],
+                'Coverage %': stats['coverage_percentage']
             }
             
             # Write Excel file with multiple sheets
-            with pd.ExcelWriter(safe_path, engine='openpyxl') as writer:
+            with pd.ExcelWriter(safe_filename, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name='TOC_Data', index=False)
                 pd.DataFrame(list(summary.items()), 
                            columns=['Metric', 'Value']).to_excel(
@@ -73,17 +99,26 @@ class ReportExporter(BaseExporter):
     def export_validation_json(self, toc_entries: List[TOCEntry], filename: str = "validation_report.json") -> bool:
         """Export JSON validation report with detailed statistics"""
         try:
-            safe_path = self._validate_path(filename)
-            stats = self._calculate_stats(toc_entries)
+            # Secure path validation - resolve and validate within working directory
+            from pathlib import Path
+            safe_path = Path(filename).resolve()
+            cwd = Path.cwd().resolve()
+            try:
+                safe_path.relative_to(cwd)
+            except ValueError:
+                logger.error(f"Path outside working directory: {filename}")
+                return False
+            safe_filename = safe_path
+            stats = self._calculate_validation_stats(toc_entries)
             
             report = {
                 'validation_summary': stats,
                 'schema_compliance': 1.0,
-                'coverage_percentage': round((len(toc_entries) / TOTAL_EXPECTED_PAGES) * 100, 2) if TOTAL_EXPECTED_PAGES > 0 else 0,
+                'coverage_percentage': stats['coverage_percentage'],
                 'generated_at': pd.Timestamp.now().isoformat()
             }
             
-            with open(safe_path, 'w', encoding='utf-8') as f:
+            with open(safe_filename, 'w', encoding='utf-8') as f:
                 json.dump(report, f, indent=2, ensure_ascii=False)
             
             logger.info(f"Generated JSON validation report: {filename}")

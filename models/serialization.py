@@ -12,9 +12,8 @@ class SerializationHelper:
     def serialize_value(key: str, value: Any) -> Any:
         """Serialize individual value with type checking"""
         try:
-            # Cache to_dict check to avoid redundant calls
-            has_to_dict = SerializationHelper._has_to_dict_method(value)
-            if has_to_dict:
+            # Direct method checking for better performance
+            if SerializationHelper._has_to_dict_method(value):
                 return value.to_dict()
             elif isinstance(value, list):
                 return SerializationHelper._serialize_list(value)
@@ -30,9 +29,9 @@ class SerializationHelper:
     
     @staticmethod
     def _serialize_list(items: List[Any]) -> List[Any]:
-        """Serialize list items"""
+        """Serialize list items efficiently with list comprehension"""
         return [
-            item.to_dict() if SerializationHelper._has_to_dict_method(item) else item 
+            item.to_dict() if SerializationHelper._has_to_dict_method(item) else item
             for item in items if item is not None
         ]
     
@@ -46,5 +45,6 @@ class SerializationHelper:
     
     @staticmethod
     def _has_to_dict_method(obj) -> bool:
-        """Check if object has to_dict method"""
-        return hasattr(obj, 'to_dict') and callable(getattr(obj, 'to_dict'))
+        """Optimized check for to_dict method"""
+        to_dict_attr = getattr(obj, 'to_dict', None)
+        return to_dict_attr is not None and callable(to_dict_attr)

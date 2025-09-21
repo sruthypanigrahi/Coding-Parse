@@ -83,7 +83,11 @@ class DocumentProcessor(ABC):
             if not structure:
                 return {"success": False, "error": "No structure found"}
             
-            content = self.extract_content(structure)
+            try:
+                content = self.extract_content(structure)
+            except Exception as e:
+                logger.error(f"Content extraction failed: {type(e).__name__}: {str(e)}")
+                raise
             
             if not self.export_results(structure, content):
                 return {"success": False, "error": "Export failed"}

@@ -52,5 +52,5 @@ class ProcessingContext:
         try:
             return self._strategy.process(data)
         except Exception as e:
-            logger.error(f"Strategy execution failed: {type(e).__name__}")
+            logger.error(f"Strategy execution failed: {type(e).__name__}: {str(e)}")
             return {"success": False, "error": "Processing strategy failed"}

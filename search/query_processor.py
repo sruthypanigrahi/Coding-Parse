@@ -65,13 +65,16 @@ class QueryProcessor:
         query_lower = query.lower()
         
         try:
-            # Validate file path for security
-            from validators.security import SecurityValidator
-            if not SecurityValidator.validate_file_path(str(content_file)):
-                logger.error(f"Security violation: Invalid file path {content_file}")
+            # Secure path validation - resolve and validate within working directory
+            safe_path = Path(content_file).resolve()
+            cwd = Path.cwd().resolve()
+            try:
+                safe_path.relative_to(cwd)
+            except ValueError:
+                logger.error(f"Path outside working directory: {content_file}")
                 return []
             
-            with open(content_file, 'r', encoding='utf-8') as f:
+            with open(safe_path, 'r', encoding='utf-8') as f:
                 for line in f:
                     try:
                         entry = json.loads(line.strip())

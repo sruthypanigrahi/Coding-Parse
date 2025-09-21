@@ -3,7 +3,7 @@ Observer Pattern Implementation
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Set
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -38,19 +38,15 @@ class Subject:
     """Subject class for Observer pattern"""
     
     def __init__(self):
-        self._observers: List[Observer] = []
+        self._observers: Set[Observer] = set()
     
     def attach(self, observer: Observer):
-        """Attach observer to subject"""
-        if observer not in self._observers:
-            self._observers.append(observer)
+        """Attach observer to subject with O(1) duplicate prevention"""
+        self._observers.add(observer)
     
     def detach(self, observer: Observer):
-        """Detach observer from subject with error handling"""
-        try:
-            self._observers.remove(observer)
-        except ValueError:
-            logger.warning("Observer not found for removal")
+        """Detach observer from subject with O(1) removal"""
+        self._observers.discard(observer)
     
     def notify(self, event: str, data: Dict[str, Any]):
         """Notify all observers with error handling"""

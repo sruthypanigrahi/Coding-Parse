@@ -1,6 +1,6 @@
 """Data handling interfaces"""
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Union, Dict, List
 from .types import ValidationReport
 
 
@@ -23,8 +23,8 @@ class Reportable(ABC):
 class Exportable(ABC):
     """Interface for exportable objects"""
     @abstractmethod
-    def export(self, data: Any, filename: str) -> bool:
-        """Export data to file"""
+    def export(self, data: Union[Dict, List, ValidationReport], filename: str) -> bool:
+        """Export data to file with specific type constraints"""
         pass
 
 

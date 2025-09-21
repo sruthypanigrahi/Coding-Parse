@@ -31,5 +31,5 @@ class InputValidator:
         return self._path_validator.validate_output_path(output_path)
     
     def validate_page_number(self, page: int, max_pages: int) -> int:
-        """Validate page number"""
-        return self._path_validator.validate_page_number(page, max_pages)
+        """Validate page number using PDF validator for semantic correctness"""
+        return self._pdf_validator.validate_page_number(page, max_pages)

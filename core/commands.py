@@ -46,9 +46,32 @@ class ParseCommand(ProcessingCommand):
             return self._result
     
     def undo(self) -> bool:
-        """Undo parsing (cleanup temporary files)"""
-        # Implementation would clean up any temporary files
-        return True
+        """Undo parsing (cleanup temporary files and resources)"""
+        try:
+            from pathlib import Path
+            # Clean up any temporary files created during processing
+            temp_files = ['temp_toc.jsonl', 'temp_content.jsonl', 'temp_validation.xlsx']
+            cleaned = 0
+            
+            for temp_file in temp_files:
+                temp_path = Path(temp_file)
+                if temp_path.exists():
+                    try:
+                        temp_path.unlink()
+                        cleaned += 1
+                    except (OSError, PermissionError):
+                        continue
+            
+            if cleaned > 0:
+                logger.info(f"Cleaned up {cleaned} temporary files")
+            
+            # Reset result state
+            self._result = None
+            
+            return True
+        except Exception as e:
+            logger.error(f"Undo operation failed: {type(e).__name__}: {str(e)}")
+            return False
 
 
 class ProcessingInvoker:

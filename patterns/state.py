@@ -32,6 +32,11 @@ class IdleStateHandler(StateHandler):
     """Handler for idle state"""
     
     def handle(self, context: 'StateContext') -> ProcessingStateEnum:
+        # Use context for validation if available
+        if hasattr(context, 'validate') and callable(context.validate):
+            if not context.validate():
+                logger.error("Context validation failed - transitioning to ERROR")
+                return ProcessingStateEnum.ERROR
         logger.info("Transitioning from IDLE to PROCESSING")
         return ProcessingStateEnum.PROCESSING
 
@@ -41,7 +46,7 @@ class ProcessingStateHandler(StateHandler):
     
     def handle(self, context: 'StateContext') -> ProcessingStateEnum:
         # Check processing success from context
-        success = getattr(context, 'processing_success', True)
+        success = context.processing_success
         if success:
             logger.info("Transitioning from PROCESSING to COMPLETED")
             return ProcessingStateEnum.COMPLETED
@@ -65,7 +70,13 @@ class ErrorStateHandler(StateHandler):
         # Access error details from context for recovery
         error_details = getattr(context, 'error_details', None)
         if error_details:
-            logger.error(f"Processing error: {error_details} - transitioning to IDLE")
+            # Safe Unicode-aware sanitization
+            error_str = str(error_details).replace('\n', ' ').replace('\r', ' ')
+            if len(error_str) > 200:
+                sanitized_details = error_str[:197] + "..."
+            else:
+                sanitized_details = error_str
+            logger.error(f"Processing error: {sanitized_details} - transitioning to IDLE")
         else:
             logger.error("Processing error state - transitioning to IDLE")
         return ProcessingStateEnum.IDLE
@@ -100,6 +111,7 @@ class StateContext:
                 self._current_state = ProcessingStateEnum.ERROR
         else:
             logger.warning("No handler found for current state")
+            self._current_state = ProcessingStateEnum.ERROR
     
     @property
     def state(self) -> ProcessingStateEnum:

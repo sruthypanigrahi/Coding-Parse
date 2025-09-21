@@ -35,18 +35,18 @@ class QueryValidator:
         if not isinstance(query, str):
             raise ValidationError("Search query must be a string", "INVALID_TYPE")
         
-        # Sanitize query
+        # Sanitize query first
         sanitized_query = query.strip()
-        
-        # Length validation
-        if len(sanitized_query) < MIN_QUERY_LENGTH:
-            raise ValidationError(
-                f"Search query must be at least {MIN_QUERY_LENGTH} characters", 
-                "QUERY_TOO_SHORT"
-            )
         
         # Security: Remove potentially dangerous characters efficiently
         sanitized_query = sanitized_query.translate(cls.TRANSLATION_TABLE)
+        
+        # Length validation after sanitization to ensure final query meets requirements
+        if len(sanitized_query) < MIN_QUERY_LENGTH:
+            raise ValidationError(
+                f"Search query must be at least {MIN_QUERY_LENGTH} characters after sanitization", 
+                "QUERY_TOO_SHORT"
+            )
         
         if not sanitized_query:
             raise ValidationError("Search query contains only invalid characters", "INVALID_CHARACTERS")

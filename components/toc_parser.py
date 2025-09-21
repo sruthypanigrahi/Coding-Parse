@@ -16,6 +16,7 @@ class TOCParser(Parseable):
         self.processor = processor
         self._logger = setup_logger(self.__class__.__name__)
         self._section_pattern = re.compile(r'^(\d+(?:\.\d+)*)\s+(.+?)$')
+        self._hierarchy_pattern = re.compile(r'^\d+(?:\.\d+)*$')
     
     def parse(self) -> List[TOCEntry]:
         """Parse TOC with comprehensive error handling"""

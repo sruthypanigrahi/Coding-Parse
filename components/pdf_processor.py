@@ -15,7 +15,7 @@ class PDFProcessor(Processable):
     
     def __init__(self, file_path: str):
         """Initialize PDF processor with security validation"""
-        # Security validation - path traversal protection
+        # Security validation - path traversal protection with cached resolution
         resolved_path = Path(file_path).resolve()
         cwd = Path.cwd().resolve()
         try:
@@ -23,7 +23,8 @@ class PDFProcessor(Processable):
         except ValueError:
             raise ValueError("Path traversal not allowed - path outside working directory")
         
-        self._file_path = Path(file_path).resolve()
+        # Cache resolved path to avoid duplicate resolution
+        self._file_path = resolved_path
         self._doc: Optional[fitz.Document] = None
         self._logger = setup_logger(self.__class__.__name__)
     

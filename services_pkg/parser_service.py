@@ -3,7 +3,8 @@ Parser Service - Main Orchestration Layer
 """
 
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
+import os
 from interfaces import Executable
 from models import TOCEntry, ContentEntry
 from constants import ASSETS_FOLDER, DEFAULT_PDF_FILE, TOTAL_EXPECTED_PAGES
@@ -33,8 +34,9 @@ class ParserService(Executable, Subject):
         self._document_processor = DocumentProcessor(self._context.get_processor_factory())
         self._export_manager = ExportManager(self._context.get_service_factory())
         
-        # Attach progress observer for monitoring
-        self.attach(ProgressObserver())
+        # Attach progress observer for monitoring - store reference to prevent GC
+        self._progress_observer = ProgressObserver()
+        self.attach(self._progress_observer)
     
     @timer
     def execute(self, pdf_path: Optional[str] = None) -> Dict[str, Any]:
@@ -74,43 +76,53 @@ class ParserService(Executable, Subject):
             return result
             
         except ValidationError as e:
-            logger.error(f"Validation failed: {type(e).__name__}")
+            logger.error(f"Validation failed: {str(e)}")
             return {'success': False, 'error': "Invalid input provided"}
         except FileNotFoundError as e:
-            logger.error(f"File not found: {type(e).__name__}")
+            logger.error(f"File not found: {str(e)}")
             return {'success': False, 'error': "Requested file not accessible"}
         except PermissionError as e:
-            logger.error(f"Permission denied: {type(e).__name__}")
+            logger.error(f"Permission denied: {str(e)}")
             return {'success': False, 'error': "Access denied"}
+        except (OSError, IOError) as e:
+            logger.error(f"I/O error: {str(e)}")
+            return {'success': False, 'error': "File operation failed"}
         except Exception as e:
-            logger.error(f"Unexpected error: {type(e).__name__}")
+            logger.error(f"Unexpected error: {type(e).__name__}: {str(e)}")
             return {'success': False, 'error': "Processing failed due to unexpected error"}
     
     def _resolve_and_validate_path(self, pdf_path: Optional[str]) -> Path:
-        """Resolve and validate PDF path with comprehensive security checks"""
+        """Secure path resolution with comprehensive protection"""
+        import os
+        
         if not pdf_path:
             default_path = Path(ASSETS_FOLDER) / DEFAULT_PDF_FILE
             return self._validator.validate_pdf_file(str(default_path))
         
-        # Comprehensive security validation
-        if any(dangerous in pdf_path for dangerous in ['..', '~']):
-            raise ValidationError("Path contains dangerous characters")
+        # Input sanitization
+        clean_path = pdf_path.replace('\x00', '').strip()
+        if not clean_path:
+            raise ValidationError("Invalid path after sanitization")
         
-        if Path(pdf_path).is_absolute():
+        # Create and resolve paths
+        input_path = Path(clean_path)
+        if input_path.is_absolute():
             raise ValidationError("Absolute paths not allowed")
         
-        # Resolve path safely within assets folder
-        assets_path = Path(ASSETS_FOLDER) / pdf_path
-        resolved_path = assets_path.resolve()
-        assets_resolved = Path(ASSETS_FOLDER).resolve()
+        from utils.security import SecurePathValidator
         
-        # Ensure resolved path is within assets directory
         try:
-            resolved_path.relative_to(assets_resolved)
-        except ValueError:
-            raise ValidationError("Path traversal attempt detected")
+            # Additional path traversal protection
+            if '..' in clean_path or '/' in clean_path or '\\' in clean_path or not clean_path.endswith('.pdf'):
+                raise ValidationError("Invalid file path")
+            
+            # Use centralized secure path validation
+            assets_resolved = Path(ASSETS_FOLDER).resolve()
+            candidate_path = SecurePathValidator.validate_and_resolve(str(input_path), assets_resolved)
+        except ValueError as e:
+            raise ValidationError(f"Path validation failed: {e}") from e
         
-        return self._validator.validate_pdf_file(str(resolved_path))
+        return self._validator.validate_pdf_file(str(candidate_path))
     
     def _create_success_response(self, toc_entries: List[TOCEntry], content_entries: List[ContentEntry]) -> Dict[str, Any]:
         """Create comprehensive success response with metrics"""

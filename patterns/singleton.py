@@ -4,6 +4,8 @@ Singleton and Template Method Patterns
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any
+from pathlib import Path
+import threading
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -25,21 +27,25 @@ class SingletonMeta(type):
 
 
 class ConfigurationManager(metaclass=SingletonMeta):
-    """Singleton configuration manager"""
+    """Thread-safe singleton configuration manager"""
+    
+    _config_lock = threading.Lock()
     
     def __init__(self):
-        with __import__('threading').Lock():
-            if not hasattr(self, '_initialized'):
-                self._config = {}
-                self._initialized = True
+        # Thread-safe initialization
+        if not hasattr(self, '_initialized'):
+            self._config = {}
+            self._initialized = True
     
     def get_config(self, key: str, default=None):
-        """Get configuration value"""
-        return self._config.get(key, default)
+        """Get configuration value with thread safety"""
+        with self._config_lock:
+            return self._config.get(key, default)
     
     def set_config(self, key: str, value: Any):
-        """Set configuration value"""
-        self._config[key] = value
+        """Set configuration value with thread safety"""
+        with self._config_lock:
+            self._config[key] = value
 
 
 class DocumentProcessor(ABC):
@@ -53,33 +59,57 @@ class DocumentProcessor(ABC):
             processed_data = self.process_data(data)
             result = self.format_output(processed_data)
             return result
-        except (FileNotFoundError, PermissionError) as e:
-            logger.error(f"File access error: {e}")
+        except FileNotFoundError as e:
+            logger.error(f"File not found: {e}")
+            return {"success": False, "error": "File not found"}
+        except PermissionError as e:
+            logger.error(f"Permission denied: {e}")
             return {"success": False, "error": "File access denied"}
+        except (OSError, IOError) as e:
+            logger.error(f"I/O error: {e}")
+            return {"success": False, "error": "File operation failed"}
+        except ValueError as e:
+            logger.error(f"Validation error: {e}")
+            return {"success": False, "error": "Invalid input"}
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            logger.error(f"File operation error: {type(e).__name__}: {str(e)[:100]}")
+            return {"success": False, "error": "File operation failed"}
         except Exception as e:
-            logger.error(f"Document processing failed: {e}")
+            logger.error(f"Processing error: {type(e).__name__}: {str(e)[:100]}")
             return {"success": False, "error": "Processing failed"}
     
     def validate_input(self, file_path: str):
-        """Common validation logic with path traversal protection"""
-        if not file_path:
-            raise ValueError("File path cannot be empty")
-        if not isinstance(file_path, str):
-            raise TypeError("File path must be a string")
-        
-        # Path traversal protection
-        if '..' in file_path or file_path.startswith(('/', '\\')):
-            raise ValueError("Invalid file path: potential security risk")
-        
-        # Ensure path is within current directory
+        """Secure input validation with robust path traversal protection"""
         import os
+        
+        if not file_path or not isinstance(file_path, str):
+            raise ValueError("File path must be a non-empty string")
+        
+        # Explicit path traversal checks first
+        if '..' in file_path or '/' in file_path or '\\' in file_path:
+            raise ValueError("Path traversal attempts not allowed")
+        
+        # Sanitize input
+        clean_path = file_path.replace('\x00', '').strip()
+        if not clean_path:
+            raise ValueError("Invalid file path after sanitization")
+        
+        # Robust path traversal protection
         try:
-            abs_path = os.path.abspath(file_path)
-            cwd = os.path.abspath('.')
-            if not abs_path.startswith(cwd):
-                raise ValueError("File path must be within current directory")
-        except (OSError, ValueError):
-            raise ValueError("Invalid file path")
+            path_obj = Path(clean_path)
+            if path_obj.is_absolute():
+                raise ValueError("Absolute paths not allowed")
+            
+            resolved_path = path_obj.resolve(strict=False)
+            cwd = Path.cwd().resolve()
+            
+            # Use os.path.commonpath for secure validation
+            common = os.path.commonpath([str(resolved_path), str(cwd)])
+            if Path(common).resolve() != cwd:
+                raise ValueError("Path traversal attempt detected")
+                
+        except (OSError, ValueError) as e:
+            raise ValueError(f"Invalid file path: {e}")
     
     @abstractmethod
     def load_document(self, file_path: str) -> Any:

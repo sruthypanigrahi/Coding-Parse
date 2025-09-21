@@ -17,8 +17,9 @@ class SecureFormatter(logging.Formatter):
         """Format log record with security sanitization"""
         # Sanitize message to prevent log injection
         if hasattr(record, 'msg') and isinstance(record.msg, str):
-            # Remove potential ANSI escape sequences and control characters
-            record.msg = ''.join(char for char in record.msg if ord(char) >= 32 or char in '\t\n\r')
+            # Efficient sanitization using performance optimizer
+            from utils.performance import PerformanceOptimizer
+            record.msg = PerformanceOptimizer.sanitize_log_message(record.msg)
         
         return super().format(record)
 

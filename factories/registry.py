@@ -29,17 +29,17 @@ class ComponentRegistry:
     
     def register(self, name: str, component: Any) -> None:
         """Register a component with thread safety"""
-        with self.__class__._lock:
+        with self._lock:
             self._components[name] = component
     
     def get(self, name: str) -> Optional[Any]:
         """Get a registered component with thread safety"""
-        with self.__class__._lock:
+        with self._lock:
             return self._components.get(name)
     
     def unregister(self, name: str) -> bool:
         """Unregister a component with thread safety"""
-        with self.__class__._lock:
+        with self._lock:
             if name in self._components:
                 del self._components[name]
                 return True
@@ -47,7 +47,7 @@ class ComponentRegistry:
     
     def clear(self) -> None:
         """Clear all registered components with thread safety"""
-        with self.__class__._lock:
+        with self._lock:
             self._components.clear()
 
 
@@ -71,29 +71,36 @@ class DependencyInjector:
             self._singletons[interface] = None
     
     def get(self, interface: Type) -> Any:
-        """Get instance with thread-safe singleton pattern"""
+        """Get instance with atomic thread-safe pattern"""
         with self._lock:
-            if interface in self._singletons:
-                if self._singletons[interface] is None:
-                    implementation = self._bindings[interface]
-                    try:
-                        self._singletons[interface] = implementation()
-                    except Exception as e:
-                        raise ValueError(f"Failed to instantiate singleton {interface.__name__}") from e
-                return self._singletons[interface]
+            singleton = self._get_singleton(interface)
+            return singleton if singleton is not None else self._create_instance(interface)
+    
+    def _get_singleton(self, interface: Type) -> Optional[Any]:
+        """Thread-safe singleton creation with proper locking"""
+        # Check if interface is registered for singleton
+        if interface not in self._singletons:
+            return None
             
-            if interface in self._bindings:
+        # Thread-safe singleton creation
+        with self._lock:
+            if self._singletons[interface] is None:
                 implementation = self._bindings[interface]
                 try:
-                    return implementation()
-                except Exception as e:
-                    raise ValueError(f"Failed to instantiate {interface.__name__}") from e
-            
-            raise ValueError(f"No binding found for {interface}")
+                    self._singletons[interface] = implementation()
+                except (TypeError, AttributeError, ValueError) as e:
+                    raise ValueError(f"Failed to instantiate singleton {interface.__name__}: {str(e)}") from e
+            return self._singletons[interface]
     
-    def create_instance(self, cls: Type, **kwargs) -> Any:
-        """Create instance with dependency injection and error handling"""
-        try:
-            return cls(**kwargs)
-        except (TypeError, AttributeError) as e:
-            raise ValueError(f"Failed to create instance of {cls.__name__}") from e
+    def _create_instance(self, interface: Type) -> Any:
+        """Create new instance"""
+        with self._lock:
+            if interface not in self._bindings:
+                raise ValueError(f"No binding found for {interface}")
+            
+            implementation = self._bindings[interface]
+            try:
+                return implementation()
+            except (TypeError, AttributeError, ValueError) as e:
+                raise ValueError(f"Failed to instantiate {interface.__name__}: {str(e)}") from e
+    

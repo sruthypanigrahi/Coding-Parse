@@ -34,10 +34,12 @@ class SecurityValidator:
         if not file_path or not isinstance(file_path, str):
             return False
         
-        # Check for path traversal patterns
-        dangerous_patterns = ['..', '~', '$', '`', '|', ';', '&', '>', '<']
-        # Check for actual path traversal sequences, not just character presence
-        if '../' in file_path or '..\\' in file_path or any(pattern in file_path for pattern in ['~', '$', '`', '|', ';', '&', '>', '<']):
+        # Split complex validation into clear steps for better maintainability
+        has_path_traversal = '../' in file_path or '..\\' in file_path
+        dangerous_chars = ['~', '$', '`', '|', ';', '&', '>', '<']
+        has_dangerous_chars = any(pattern in file_path for pattern in dangerous_chars)
+        
+        if has_path_traversal or has_dangerous_chars:
             return False
         
         # Check for absolute paths (security risk)
